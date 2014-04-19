@@ -72,7 +72,7 @@ local function CheckRestack()
 
 	for bag = firstBag, lastBag, direction do
 		local icon, numSlots = GetBagInfo(bag)
-		for slot = 1, numSlots do
+		for slot = 0, numSlots do
 			local link = GetItemLink(bag, slot, LINK_STYLE_DEFAULT)
 			local itemID = link and link:match('item:(%d+)')
 
