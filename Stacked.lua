@@ -73,22 +73,23 @@ local function CheckRestack()
 	for bag = firstBag, lastBag, direction do
 		local icon, numSlots = GetBagInfo(bag)
 		for slot = 1, numSlots do
-			-- local itemName = GetItemName(bag, slot)
 			local link = GetItemLink(bag, slot, LINK_STYLE_DEFAULT)
+			local itemID = link and link:match('item:(%d+)')
+
 			local count, stackSize = GetSlotStackSize(bag, slot)
 			local total = count
-			if count < stackSize then
-				if positions[link] then
-					total = total + positions[link].count
-					local success = MoveItem(bag, slot, positions[link].bag, positions[link].slot, count)
+			if link and count < stackSize then
+				if positions[itemID] then
+					total = total + positions[itemID].count
+					local success = MoveItem(bag, slot, positions[itemID].bag, positions[itemID].slot, count)
 					if success and total > stackSize then
-						positions[link].bag = bag
-						positions[link].slot = slot
-						positions[link].count = total - stackSize
+						positions[itemID].bag = bag
+						positions[itemID].slot = slot
+						positions[itemID].count = total - stackSize
 					end
 				else
 					-- first time encountering this item
-					positions[link] = {
+					positions[itemID] = {
 						bag = bag,
 						slot = slot,
 						count = count,
@@ -98,9 +99,6 @@ local function CheckRestack()
 		end
 	end
 end
-EVENT_MANAGER:RegisterForEvent(addonName, EVENT_TRADE_SUCCEEDED, CheckRestack)
-EVENT_MANAGER:RegisterForEvent(addonName, EVENT_OPEN_BANK, CheckRestack)
-EVENT_MANAGER:RegisterForEvent(addonName, EVENT_MAIL_TAKE_ATTACHED_ITEM_SUCCESS, CheckRestack)
 
 -- --------------------------------------------------------
 --  UI / Saved Vars management
@@ -113,6 +111,8 @@ local function Initialize(eventCode, arg1, ...)
 		stackToBank = true,
 		showMessages = true,
 	})
+
+	_G[addonName] = addon
 
 	SLASH_COMMANDS['/stacked'] = function(arg)
 		if arg == '' or arg == 'help' then
@@ -130,6 +130,10 @@ local function Initialize(eventCode, arg1, ...)
 		end
 	end
 	SLASH_COMMANDS['/stack'] = CheckRestack
+
+	EVENT_MANAGER:RegisterForEvent(addonName, EVENT_TRADE_SUCCEEDED, CheckRestack)
+	EVENT_MANAGER:RegisterForEvent(addonName, EVENT_OPEN_BANK, CheckRestack)
+	EVENT_MANAGER:RegisterForEvent(addonName, EVENT_MAIL_TAKE_ATTACHED_ITEM_SUCCESS, CheckRestack)
 
 	CheckRestack()
 end
