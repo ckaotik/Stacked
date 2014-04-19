@@ -12,3 +12,6 @@ Currently only via ingame slash commands. Use `/stacked` or `/stacked help` to g
 - `/stacked showMessages true` to show, false to hide movement notices'
 - `/stacked exclude 1234` to exclude the item with id 1234'
 - `/stacked include 1234` to re-include the item with id 1234
+
+For example, to avoid stacking lockpicks into your bag you could check http://esohead.com for the item's id:
+`http://esohead.com/items/30357-lockpick` shows the item id being `30357`. Ingame, use `/stacked exclude 30357` and it will no longer be stacked.
