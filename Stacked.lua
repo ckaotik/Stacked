@@ -76,24 +76,27 @@ local function CheckRestack()
 			local link = GetItemLink(bag, slot, LINK_STYLE_DEFAULT)
 			local itemID = link and link:match('item:(%d+)')
 
-			local count, stackSize = GetSlotStackSize(bag, slot)
-			local total = count
-			if link and count < stackSize then
-				if positions[itemID] then
-					total = total + positions[itemID].count
-					local success = MoveItem(bag, slot, positions[itemID].bag, positions[itemID].slot, count)
-					if success and total > stackSize then
-						positions[itemID].bag = bag
-						positions[itemID].slot = slot
-						positions[itemID].count = total - stackSize
+			if not addon.db.exclude[itemID] then
+				-- don't touch excluded items
+				local count, stackSize = GetSlotStackSize(bag, slot)
+				local total = count
+				if link and count < stackSize then
+					if positions[itemID] then
+						total = total + positions[itemID].count
+						local success = MoveItem(bag, slot, positions[itemID].bag, positions[itemID].slot, count)
+						if success and total > stackSize then
+							positions[itemID].bag = bag
+							positions[itemID].slot = slot
+							positions[itemID].count = total - stackSize
+						end
+					else
+						-- first time encountering this item
+						positions[itemID] = {
+							bag = bag,
+							slot = slot,
+							count = count,
+						}
 					end
-				else
-					-- first time encountering this item
-					positions[itemID] = {
-						bag = bag,
-						slot = slot,
-						count = count,
-					}
 				end
 			end
 		end
@@ -106,27 +109,34 @@ end
 local function Initialize(eventCode, arg1, ...)
 	if arg1 ~= addonName then return end
 
-	addon.db = ZO_SavedVars:New(addonName..'DB', 1, nil, {
+	addon.db = ZO_SavedVars:NewAccountWide(addonName..'DB', 1, nil, {
 		-- default settings
 		stackToBank = true,
 		showMessages = true,
+		exclude = {},
 	})
 
 	_G[addonName] = addon
 
 	SLASH_COMMANDS['/stacked'] = function(arg)
 		if arg == '' or arg == 'help' then
-			d('Stacked help:'
+			d('Stacked command help:'
 				..'\n  "/stack" to start the stacking algorithm'
 				..'\n  "/stacked stackToBank true" to stack to bank, false to stack to bags'
-				..'\n  "/stacked showMessages true" to show, false to hide movement notices')
+				..'\n  "/stacked showMessages true" to show, false to hide movement notices'
+				..'\n  "/stacked exclude 1234" to exclude the item with id 1234'
+				..'\n  "/stacked include 1234" to re-include the item with id 1234')
 			return
 		end
 
 		local option, value = string.match(arg, '([%d%a]+)%s*(.*)')
-		if addon.db[option] ~= nil then
-			-- TODO: only supports boolean for now
+		local optionType = type(addon.db[option])
+		if type(addon.db[option]) == 'boolean' then
 			addon.db[option] = (value and value ~= 'false') and true or false
+		elseif option == 'exclude' then
+			addon.db.exclude[value] = true
+		elseif option == 'include' then
+			addon.db.exclude[value] = nil
 		end
 	end
 	SLASH_COMMANDS['/stack'] = CheckRestack
