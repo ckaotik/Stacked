@@ -1,0 +1,8 @@
+## Title: Stacked
+## Author: ckaotik
+## Version: 0.1
+## APIVersion: 100003
+## SavedVariables: StackedDB
+## OptionalDependsOn: Console
+
+Stacked.lua
