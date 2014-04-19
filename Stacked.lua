@@ -65,13 +65,9 @@ local function CheckRestack()
 	local direction, firstBag, lastBag
 	local maxBags = math.min(BAG_BANK, GetMaxBags())
 	if addon.db.stackToBank then
-		direction = -1
-		firstBag = maxBags
-		lastBag = 1
+		direction, firstBag, lastBag = -1, maxBags, 1
 	else
-		direction = 1
-		firstBag = maxBags
-		lastBag = 1
+		direction, firstBag, lastBag = 1, 1, maxBags
 	end
 
 	for bag = firstBag, lastBag, direction do
