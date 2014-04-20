@@ -4,17 +4,8 @@ local addonName, addon, _ = 'Stacked', {}
 -- GLOBALS: GetSlotStackSize, GetItemLink, CallSecureProtected, ClearCursor, GetMaxBags, GetBagInfo
 -- GLOBALS: string, math, pairs, d, select, tostring
 
-local function print(...)
-	local result
-	for i = 1, select('#', ...) do
-		local value = select(i, ...)
-		result = (result and result..' ' or '') .. tostring(value)
-	end
-	d(result or '')
-end
-
 local function CleanText(text)
-	return string.gsub(text or '', '(\^[^ |:]+)', '')
+	return string.gsub(text or '', '(\^[^ :\124]+)', '')
 end
 
 local bagNames = {
@@ -39,15 +30,18 @@ end
 local function MoveItem(fromBag, fromSlot, toBag, toSlot, count)
 	count = count or GetSlotStackSize(fromBag, fromSlot)
 
-	if addon.db.showMessages then
-		-- "|HFFFFFF:item:45847:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0|hTaderi^N|h"
-		local itemLink = GetItemLink(fromBag, fromSlot, LINK_STYLE_DEFAULT)
-		print('Moved', CleanText(itemLink), 'from', GetSlotText(fromBag, fromSlot), 'to', GetSlotText(toBag, toSlot))
-	end
-
 	local success
 	if CallSecureProtected('PickupInventoryItem', fromBag, fromSlot, count) then
 		success = CallSecureProtected('PlaceInInventory', toBag, toSlot)
+	end
+
+	if addon.db.showMessages then
+		-- "|HFFFFFF:item:45847:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0|hTaderi^N|h"
+		local itemLink = GetItemLink(fromBag, fromSlot, LINK_STYLE_DEFAULT)
+		local template = success and 'Moved %s from %s to %s' or 'Failed to move %s from %s to %s'
+		local text = string.format(template,
+			CleanText(itemLink), GetSlotText(fromBag, fromSlot), GetSlotText(toBag, toSlot))
+		d(text)
 	end
 
 	-- clear the cursor to avoid issues
@@ -144,7 +138,5 @@ local function Initialize(eventCode, arg1, ...)
 	EVENT_MANAGER:RegisterForEvent(addonName, EVENT_TRADE_SUCCEEDED, CheckRestack)
 	EVENT_MANAGER:RegisterForEvent(addonName, EVENT_OPEN_BANK, CheckRestack)
 	EVENT_MANAGER:RegisterForEvent(addonName, EVENT_MAIL_TAKE_ATTACHED_ITEM_SUCCESS, CheckRestack)
-
-	CheckRestack()
 end
 EVENT_MANAGER:RegisterForEvent(addonName, EVENT_ADD_ON_LOADED, Initialize)
