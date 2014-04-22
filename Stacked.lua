@@ -68,24 +68,29 @@ local function CheckRestack()
 		local icon, numSlots = GetBagInfo(bag)
 		for slot = 0, numSlots do
 			local link = GetItemLink(bag, slot, LINK_STYLE_DEFAULT)
-			local itemID = link and link:match('item:(%d+)')
+			local itemID, level
+			if link then
+				itemID, value, level = link:match('item:([^:]+):([^:]+):([^:]+)')
+			end
 
-			if not addon.db.exclude[itemID] then
+			if itemID and not addon.db.exclude[itemID] then
 				-- don't touch excluded items
 				local count, stackSize = GetSlotStackSize(bag, slot)
 				local total = count
 				if link and count < stackSize then
-					if positions[itemID] then
-						total = total + positions[itemID].count
-						local success = MoveItem(bag, slot, positions[itemID].bag, positions[itemID].slot, count)
+					local key = level and itemID..':'..level or itemID
+					local data = positions[key]
+					if data then
+						total = total + data.count
+						local success = MoveItem(bag, slot, data.bag, data.slot, count)
 						if success and total > stackSize then
-							positions[itemID].bag = bag
-							positions[itemID].slot = slot
-							positions[itemID].count = total - stackSize
+							data.bag = bag
+							data.slot = slot
+							data.count = total - stackSize
 						end
 					else
 						-- first time encountering this item
-						positions[itemID] = {
+						positions[key] = {
 							bag = bag,
 							slot = slot,
 							count = count,
@@ -115,11 +120,11 @@ local function Initialize(eventCode, arg1, ...)
 	SLASH_COMMANDS['/stacked'] = function(arg)
 		if arg == '' or arg == 'help' then
 			d('Stacked command help:'
-				..'\n  "/stack" to start the stacking algorithm'
-				..'\n  "/stacked stackToBank true" to stack to bank, false to stack to bags'
-				..'\n  "/stacked showMessages true" to show, false to hide movement notices'
-				..'\n  "/stacked exclude 1234" to exclude the item with id 1234'
-				..'\n  "/stacked include 1234" to re-include the item with id 1234')
+				..'\n  "|cFFFFFF/stack|r" to start the stacking algorithm'
+				..'\n  "|cFFFFFF/stacked stackToBank|r |cFF8040true|r" to stack to bank, |cFF8040false|r to stack to bags'
+				..'\n  "|cFFFFFF/stacked showMessages|r |cFF8040true|r" to show, |cFF8040false|r to hide movement notices'
+				..'\n  "|cFFFFFF/stacked exclude|r |cFF80401234|r" to exclude the item with id 1234'
+				..'\n  "|cFFFFFF/stacked include|r |cFF80401234|r" to re-include the item with id 1234')
 			return
 		end
 
@@ -128,9 +133,15 @@ local function Initialize(eventCode, arg1, ...)
 		if type(addon.db[option]) == 'boolean' then
 			addon.db[option] = (value and value ~= 'false') and true or false
 		elseif option == 'exclude' then
+			local itemID, _, level = value:match('item:([^:]+):([^:]+):([^:]+)')
+			if itemID then value = itemID end
 			addon.db.exclude[value] = true
+			d('Stacked now ignores item #'..value)
 		elseif option == 'include' then
+			local itemID, _, level = value:match('item:([^:]+):([^:]+):([^:]+)')
+			if itemID then value = itemID end
 			addon.db.exclude[value] = nil
+			d('Stacked no longer ignores #'..value)
 		end
 	end
 	SLASH_COMMANDS['/stack'] = CheckRestack
