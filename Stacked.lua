@@ -24,6 +24,11 @@ local function GetSlotText(bag, slot)
 	return result
 end
 
+local function GetLinkFromID(linkID, linkType)
+	local stub = string.rep(':0', 19)
+	return ZO_LinkHandler_CreateLink(linkID, nil, linkType or ITEM_LINK_TYPE, linkID .. stub)
+end
+
 -- --------------------------------------------------------
 --  Stack items together after trading
 -- --------------------------------------------------------
@@ -36,7 +41,6 @@ local function MoveItem(fromBag, fromSlot, toBag, toSlot, count)
 	end
 
 	if addon.db.showMessages then
-		-- "|HFFFFFF:item:45847:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0|hTaderi^N|h"
 		local itemLink = GetItemLink(fromBag, fromSlot, LINK_STYLE_DEFAULT)
 		local template = success and 'Moved %s from %s to %s' or 'Failed to move %s from %s to %s'
 		local text = string.format(template,
@@ -70,7 +74,8 @@ local function CheckRestack()
 			local link = GetItemLink(bag, slot, LINK_STYLE_DEFAULT)
 			local itemID, level
 			if link then
-				itemID, value, level = link:match('item:([^:]+):([^:]+):([^:]+)')
+				-- linkName, color, linkType, linkID
+				_, _, _, itemID, quality, level = ZO_LinkHandler_ParseLink(link)
 			end
 
 			if itemID and not addon.db.exclude[itemID] then
@@ -78,7 +83,7 @@ local function CheckRestack()
 				local count, stackSize = GetSlotStackSize(bag, slot)
 				local total = count
 				if link and count < stackSize then
-					local key = level and itemID..':'..level or itemID
+					local key = level and (itemID..':'..level) or itemID
 					local data = positions[key]
 					if data then
 						total = total + data.count
@@ -120,9 +125,10 @@ local function Initialize(eventCode, arg1, ...)
 	SLASH_COMMANDS['/stacked'] = function(arg)
 		if arg == '' or arg == 'help' then
 			d('Stacked command help:'
-				..'\n  "|cFFFFFF/stack|r" to start the stacking algorithm'
+				..'\n  "|cFFFFFF/stack|r" to start stacking manually'
 				..'\n  "|cFFFFFF/stacked stackToBank|r |cFF8040true|r" to stack to bank, |cFF8040false|r to stack to bags'
 				..'\n  "|cFFFFFF/stacked showMessages|r |cFF8040true|r" to show, |cFF8040false|r to hide movement notices'
+				..'\n  "|cFFFFFF/stacked exclude|r" or "|cFFFFFF/stacked list|r" to list all items excluded from stacking'
 				..'\n  "|cFFFFFF/stacked exclude|r |cFF80401234|r" to exclude the item with id 1234'
 				..'\n  "|cFFFFFF/stacked include|r |cFF80401234|r" to re-include the item with id 1234')
 			return
@@ -132,16 +138,27 @@ local function Initialize(eventCode, arg1, ...)
 		local optionType = type(addon.db[option])
 		if type(addon.db[option]) == 'boolean' then
 			addon.db[option] = (value and value ~= 'false') and true or false
+			d('Stacked option "'..option..'" is now set to '..tostring(value))
+		elseif option == 'list' or (option == 'exclude' and not value) then
+			local list = ''
+			for itemID, _ in pairs(addon.db.exclude) do
+				list = (list ~= '' and list..', ' or '') .. GetLinkFromID(itemID)
+			end
+			d('Stacked excludes '..list)
 		elseif option == 'exclude' then
-			local itemID, _, level = value:match('item:([^:]+):([^:]+):([^:]+)')
+			local _, _, _, itemID = ZO_LinkHandler_ParseLink(value)
 			if itemID then value = itemID end
+
+			if not value or value == '' then return end
 			addon.db.exclude[value] = true
-			d('Stacked now ignores item #'..value)
+			d('Stacked now excludes item '..GetLinkFromID(value))
 		elseif option == 'include' then
-			local itemID, _, level = value:match('item:([^:]+):([^:]+):([^:]+)')
+			local _, _, _, itemID = ZO_LinkHandler_ParseLink(value)
 			if itemID then value = itemID end
+
+			if not value or value == '' then return end
 			addon.db.exclude[value] = nil
-			d('Stacked no longer ignores #'..value)
+			d('Stacked no longer excludes '..GetLinkFromID(value))
 		end
 	end
 	SLASH_COMMANDS['/stack'] = CheckRestack
