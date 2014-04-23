@@ -1,6 +1,6 @@
 ## Title: Stacked
 ## Author: ckaotik
-## Version: 1.0
+## Version: 1.1
 ## APIVersion: 100003
 ## SavedVariables: StackedDB
 
