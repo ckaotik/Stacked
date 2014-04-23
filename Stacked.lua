@@ -1,8 +1,8 @@
 local addonName, addon, _ = 'Stacked', {}
 
--- GLOBALS: ZO_SavedVars, SLASH_COMMANDS, LINK_STYLE_DEFAULT, BAG_WORN, BAG_BACKPACK, BAG_BANK, BAG_GUILDBANK, BAG_BUYBACK, BAG_TRANSFER
--- GLOBALS: GetSlotStackSize, GetItemLink, CallSecureProtected, ClearCursor, GetMaxBags, GetBagInfo
--- GLOBALS: string, math, pairs, d, select, tostring
+-- GLOBALS: _G, ZO_SavedVars, SLASH_COMMANDS, EVENT_MANAGER, EVENT_TRADE_SUCCEEDED, EVENT_OPEN_BANK, EVENT_MAIL_TAKE_ATTACHED_ITEM_SUCCESS, LINK_STYLE_DEFAULT, ITEM_LINK_TYPE, BAG_WORN, BAG_BACKPACK, BAG_BANK, BAG_GUILDBANK, BAG_BUYBACK, BAG_TRANSFER
+-- GLOBALS: GetSlotStackSize, GetItemLink, CallSecureProtected, ClearCursor, GetMaxBags, GetBagInfo, ZO_LinkHandler_CreateLink, ZO_LinkHandler_ParseLink
+-- GLOBALS: string, math, pairs, d, select, tostring, type
 
 local function CleanText(text)
 	return string.gsub(text or '', '(\^[^ :\124]+)', '')
@@ -75,7 +75,7 @@ local function CheckRestack(...)
 			local itemID, level
 			if link then
 				-- linkName, color, linkType, linkID
-				_, _, _, itemID, quality, level = ZO_LinkHandler_ParseLink(link)
+				_, _, _, itemID, _, level = ZO_LinkHandler_ParseLink(link)
 			end
 
 			if itemID and not addon.db.exclude[itemID] then
