@@ -113,7 +113,8 @@ end
 local function Initialize(eventCode, arg1, ...)
 	if arg1 ~= addonName then return end
 
-	addon.db = ZO_SavedVars:NewAccountWide(addonName..'DB', 1, nil, {
+	-- addon.db = ZO_SavedVars:NewAccountWide(addonName..'DB', 1, nil, {
+	addon.db = ZO_SavedVars:New(addonName..'DB', 1, nil, {
 		-- default settings
 		stackToBank = true,
 		showMessages = true,
@@ -144,7 +145,7 @@ local function Initialize(eventCode, arg1, ...)
 			for itemID, _ in pairs(addon.db.exclude) do
 				list = (list ~= '' and list..', ' or '') .. GetLinkFromID(itemID)
 			end
-			d('Stacked excludes '..list)
+			d('Stacked excludes '..(list ~= '' and list or 'no items'))
 		elseif option == 'exclude' then
 			local _, _, _, itemID = ZO_LinkHandler_ParseLink(value)
 			if itemID then value = itemID end
