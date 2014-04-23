@@ -42,9 +42,9 @@ local function MoveItem(fromBag, fromSlot, toBag, toSlot, count)
 
 	if addon.db.showMessages then
 		local itemLink = GetItemLink(fromBag, fromSlot, LINK_STYLE_DEFAULT)
-		local template = success and 'Moved %s from %s to %s' or 'Failed to move %s from %s to %s'
+		local template = success and 'Moved %s x%d from %s to %s' or 'Failed to move %s from %s to %s'
 		local text = string.format(template,
-			CleanText(itemLink), GetSlotText(fromBag, fromSlot), GetSlotText(toBag, toSlot))
+			CleanText(itemLink), count, GetSlotText(fromBag, fromSlot), GetSlotText(toBag, toSlot))
 		d(text)
 	end
 
@@ -52,7 +52,7 @@ local function MoveItem(fromBag, fromSlot, toBag, toSlot, count)
 	ClearCursor()
 end
 local positions = {}
-local function CheckRestack()
+local function CheckRestack(...)
 	for link, data in pairs(positions) do
 		for k, v in pairs(data) do
 			data[k] = nil
@@ -119,6 +119,10 @@ local function Initialize(eventCode, arg1, ...)
 		stackToBank = true,
 		showMessages = true,
 		exclude = {},
+
+		trade = true,
+		mail = true,
+		bank = true,
 	})
 
 	_G[addonName] = addon
