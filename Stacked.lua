@@ -19,11 +19,13 @@ local function CleanText(text)
 	return string.gsub(text or '', '(\^[^ :\124]+)', '')
 end
 
+local guildBankName = (LocalizeString(EsoStrings[1891])):gsub(LocalizeString(EsoStrings[790]), '(.+)')
+      guildBankName = (LocalizeString(EsoStrings[1262])):match(guildBankName)
 local bagNames = {
 	-- [BAG_WORN] = 'Equipped',
-	[BAG_BACKPACK] = 'Backpack',
-	[BAG_BANK] = 'Bank',
-	[BAG_GUILDBANK] = 'Guild Bank',
+	[BAG_BACKPACK] = LocalizeString(EsoStrings[2258]) or 'Backpack', -- 2258, 2270, 2754 = "Inventar"
+	[BAG_BANK] = LocalizeString(EsoStrings[790]) or 'Bank',
+	[BAG_GUILDBANK] = guildBankName or 'Guild Bank',
 	-- [BAG_BUYBACK] = 'Buy Back',
 	-- [BAG_TRANSFER] = 'Transfer',
 }
@@ -48,7 +50,6 @@ local function wipe(object)
 	end
 	return object
 end
-local function trim(text) return text:match('^%s*(.+)%s*$') end
 local function isNumber(text) return text:match("^(-?%d-%.*%d-)$") end
 
 -- --------------------------------------------------------
@@ -90,7 +91,7 @@ local function SetSetting(setting, value)
 				-- value is supplied
 				v = k:sub(suffix+1)
 				k = k:sub(0, separator-1)
-				v = trim(v)
+				v = zo_strtrim(v)
 			end
 
 			if not isNumber(k) then
@@ -113,28 +114,8 @@ local function CreateSettings()
 	local LAM = LibStub('LibAddonMenu-1.0')
 	local panel = LAM:CreateControlPanel(addonName..'Settings', addonName)
 
-	LAM:AddHeader(panel, addonName..'HeaderGeneral', 'General')
-	LAM:AddCheckbox(panel, addonName..'ToggleMessages',
-		'Output Movements', 'Enable chat output when an item has been moved.',
-		function() return GetSetting('showMessages') end, function(value) SetSetting('showMessages', value) end)
-	LAM:AddDropdown(panel, addonName..'MoveTarget',
-		'Move', 'Select where items should be moved when different locations contain partial stacks.',
-		{'None', bagNames[BAG_BACKPACK], bagNames[BAG_BANK]},
-		function(...) return GetSetting('moveTarget') end, function(value) SetSetting('moveTarget', value) end)
-
-	LAM:AddHeader(panel, addonName..'HeaderEvents', 'Events')
-	LAM:AddCheckbox(panel, addonName..'ToggleTrade',
-		'Trade', 'Enable stacking after a trade was completed.',
-		function() return GetSetting('trade') end, function(value) SetSetting('trade', value) end)
-	LAM:AddCheckbox(panel, addonName..'ToggleMail',
-		'Mail', 'Enable stacking after retrieving mail attachments.',
-		function() return GetSetting('mail') end, function(value) SetSetting('mail', value) end)
-	LAM:AddCheckbox(panel, addonName..'ToggleBank',
-		'Bank', 'Enable stacking when opening your bank.',
-		function() return GetSetting('bank') end, function(value) SetSetting('bank', value) end)
-
 	local descFormat = 'Enable stacking of items in your %s'
-	LAM:AddHeader(panel, addonName..'HeaderContainers', 'Containers')
+	LAM:AddHeader(panel, addonName..'HeaderContainers', LocalizeString('<<1>>', EsoStrings[512]))
 	for bag, name in ipairs(bagNames) do
 		LAM:AddCheckbox(panel, addonName..'ToggleContainer'..bag,
 			name, descFormat:format(name),
@@ -143,12 +124,33 @@ local function CreateSettings()
 		)
 	end
 
-	LAM:AddHeader(panel, addonName..'HeaderExclude', 'Manage Items')
+	LAM:AddHeader(panel, addonName..'HeaderEvents', LocalizeString(EsoStrings[810]))
+	LAM:AddCheckbox(panel, addonName..'ToggleTrade',
+		LocalizeString(EsoStrings[2073]), 'Enable stacking after a trade was completed.',
+		function() return GetSetting('trade') end, function(value) SetSetting('trade', value) end)
+	LAM:AddCheckbox(panel, addonName..'ToggleMail',
+		LocalizeString(EsoStrings[2014]), 'Enable stacking after retrieving mail attachments.',
+		function() return GetSetting('mail') end, function(value) SetSetting('mail', value) end)
+	LAM:AddCheckbox(panel, addonName..'ToggleBank',
+		bagNames[BAG_BANK], 'Enable stacking when opening your bank.',
+		function() return GetSetting('bank') end, function(value) SetSetting('bank', value) end)
+	LAM:AddCheckbox(panel, addonName..'ToggleGuildBank',
+		LocalizeString(EsoStrings[2380]), 'Enable stacking when opening your guild bank.',
+		function() return GetSetting('guildbank') end, function(value) SetSetting('guildbank', value) end)
+
+	LAM:AddHeader(panel, addonName..'HeaderGeneral', LocalizeString(EsoStrings[2539]))
+	LAM:AddCheckbox(panel, addonName..'ToggleMessages',
+		LocalizeString(EsoStrings[19]), 'Enable chat output when an item has been moved.',
+		function() return GetSetting('showMessages') end, function(value) SetSetting('showMessages', value) end)
+	LAM:AddDropdown(panel, addonName..'MoveTarget',
+		'Merge stacks into', 'Select where items should be moved when different locations contain partial stacks.',
+		{'None', bagNames[BAG_BACKPACK], bagNames[BAG_BANK]},
+		function(...) return GetSetting('moveTarget') end, function(value) SetSetting('moveTarget', value) end)
 	LAM:AddEditBox(panel, addonName..'Exclude',
-		'Exclude', 'Add items that should not be touched when restacking, one itemID or itemLink per line',
+		LocalizeString(EsoStrings[152]), 'Add items that should not be touched when restacking, one itemID or itemLink per line',
 		true,
 		function() return GetSetting('exclude') end, function(value) SetSetting('exclude', value) end)
-	LAM:AddDescription(panel, addonName..'ExcludeDesc', 'Add a new line with either the item\'s ID or the item\'s link by posting the link into chat and copying it into the text box.', nil)
+	LAM:AddDescription(panel, addonName..'ExcludeDesc', 'Add a new line with either the item\'s ID or the item\'s link by using "'..LocalizeString(EsoStrings[1796])..'"" and copying it into this text box.\nDon\'t know which item an id represents? Use "/stacked list" to get clickable links of all excluded items.', nil)
 end
 
 -- --------------------------------------------------------
@@ -157,6 +159,8 @@ end
 local function MoveItem(fromBag, fromSlot, toBag, toSlot, count)
 	count = count or GetSlotStackSize(fromBag, fromSlot)
 
+	-- TransferToGuildBank(sourceBag, sourceSlot) / TransferFromGuildBank(slotId)
+
 	local success
 	if CallSecureProtected('PickupInventoryItem', fromBag, fromSlot, count) then
 		success = CallSecureProtected('PlaceInInventory', toBag, toSlot)
@@ -164,7 +168,7 @@ local function MoveItem(fromBag, fromSlot, toBag, toSlot, count)
 
 	if addon.db.showMessages then
 		local itemLink = GetItemLink(fromBag, fromSlot, LINK_STYLE_DEFAULT)
-		local template = success and 'Moved %s x%d from %s to %s' or 'Failed to move %s from %s to %s'
+		local template = success and 'Moved %s x%d from %s to %s' or 'Failed to move %s x%d from %s to %s'
 		Print(template, CleanText(itemLink), count, GetSlotText(fromBag, fromSlot), GetSlotText(toBag, toSlot))
 	end
 
@@ -175,7 +179,8 @@ local positions = {}
 local function CheckRestack(event)
 	if (event == 'EVENT_MAIL_TAKE_ATTACHED_ITEM_SUCCESS' and not GetSetting('mail'))
 		or (event == 'EVENT_TRADE_SUCCEEDED' and not GetSetting('trade'))
-		or (event == 'EVENT_OPEN_BANK' and not GetSetting('bank')) then
+		or (event == 'EVENT_OPEN_BANK' and not GetSetting('bank'))
+		or (event == 'EVENT_GUILD_BANK_ITEMS_READY' and not GetSetting('guildbank')) then
 		return
 	end
 
@@ -189,7 +194,15 @@ local function CheckRestack(event)
 	end
 
 	for bag = firstBag, lastBag, direction do
-		if GetSetting('stackContainer'..bag) then
+		local hasAccess = true
+		if bag == BAG_GUILDBANK then
+			-- TODO: check DoesPlayerHaveGuildPermission(GetSelectedGuildBankId(), )
+			hasAccess = not ZO_GuildBank:IsHidden()
+		elseif bag == BAG_BANK then
+			hasAccess = not ZO_PlayerBank:IsHidden()
+		end
+
+		if GetSetting('stackContainer'..bag) and hasAccess then
 			local icon, numSlots = GetBagInfo(bag)
 			for slot = 0, numSlots do
 				local link = GetItemLink(bag, slot, LINK_STYLE_DEFAULT)
@@ -250,7 +263,7 @@ local function CreateSlashCommands()
 				..'\n  "|cFFFFFF/stack|r" to start stacking manually'
 				..'\n  "|cFFFFFF/stacked stackToBank|r |cFF8040true|r" to stack to bank, |cFF8040false|r to stack to bags'
 				..'\n  "|cFFFFFF/stacked showMessages|r |cFF8040true|r" to show, |cFF8040false|r to hide movement notices'
-				..'\n  "|cFFFFFF/stacked exclude|r" or "|cFFFFFF/stacked list|r" to list all items excluded from stacking'
+				..'\n  "|cFFFFFF/stacked list|r" to list all items excluded from stacking'
 				..'\n  "|cFFFFFF/stacked exclude|r |cFF80401234|r" to exclude the item with id 1234'
 				..'\n  "|cFFFFFF/stacked include|r |cFF80401234|r" to re-include the item with id 1234')
 			return
@@ -294,7 +307,7 @@ local function Initialize(eventCode, arg1, ...)
 		showMessages = true,
 		moveTarget = 'None',
 		exclude = {
-			[30357] = true,
+			[30357] = true, -- lockpicks, item links seem broken
 		},
 		-- containers
 		['stackContainer'..BAG_BACKPACK] = true,
@@ -304,6 +317,7 @@ local function Initialize(eventCode, arg1, ...)
 		trade = true,
 		mail = true,
 		bank = true,
+		guildbank = true,
 	})
 
 	_G[addonName] = addon
@@ -313,6 +327,7 @@ local function Initialize(eventCode, arg1, ...)
 
 	em:RegisterForEvent(addonName, EVENT_TRADE_SUCCEEDED, function() CheckRestack('EVENT_TRADE_SUCCEEDED') end)
 	em:RegisterForEvent(addonName, EVENT_OPEN_BANK, function() CheckRestack('EVENT_OPEN_BANK') end)
+	em:RegisterForEvent(addonName, EVENT_GUILD_BANK_ITEMS_READY, function() CheckRestack('EVENT_GUILD_BANK_ITEMS_READY') end)
 	em:RegisterForEvent(addonName, EVENT_MAIL_TAKE_ATTACHED_ITEM_SUCCESS, function() CheckRestack('EVENT_MAIL_TAKE_ATTACHED_ITEM_SUCCESS') end)
 end
 em:RegisterForEvent(addonName, EVENT_ADD_ON_LOADED, Initialize)

@@ -10,7 +10,7 @@ Currently only via ingame slash commands. Use `/stacked` or `/stacked help` to g
 - `/stack` to start stacking manually
 - `/stacked stackToBank true` to stack to bank, false to stack to bags
 - `/stacked showMessages true` to show, false to hide movement notices
-- `/stacked exclude` or `/stacked list` to list all items excluded from stacking
+- `/stacked list` to list all items excluded from stacking
 - `/stacked exclude 1234` to exclude the item with id 1234
 - `/stacked include 1234` to re-include the item with id 1234
 
