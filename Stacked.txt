@@ -4,7 +4,7 @@
 ## SavedVariables: StackedDB
 
 ## APIVersion: 100003
-## Version: 1.1
+## Version: 1.2
 
 libs\LibStub\LibStub.lua
 libs\LibAddonMenu-1.0\LibAddonMenu-1.0.lua

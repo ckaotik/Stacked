@@ -8,6 +8,7 @@ Configuration
 Currently only via ingame slash commands. Use `/stacked` or `/stacked help` to get a list of hints.
 
 - `/stack` to start stacking manually
+- `/stackgb` to start stacking the guild bank manually
 - `/stacked stackToBank true` to stack to bank, false to stack to bags
 - `/stacked showMessages true` to show, false to hide movement notices
 - `/stacked list` to list all items excluded from stacking

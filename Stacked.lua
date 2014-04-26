@@ -1,8 +1,9 @@
 local addonName, addon, _ = 'Stacked', {}
 
--- GLOBALS: _G, LibStub, ZO_SavedVars, SLASH_COMMANDS, EVENT_TRADE_SUCCEEDED, EVENT_OPEN_BANK, EVENT_MAIL_TAKE_ATTACHED_ITEM_SUCCESS, LINK_STYLE_DEFAULT, ITEM_LINK_TYPE, BAG_WORN, BAG_BACKPACK, BAG_BANK, BAG_GUILDBANK, BAG_BUYBACK, BAG_TRANSFER
--- GLOBALS: GetSlotStackSize, GetItemLink, CallSecureProtected, ClearCursor, GetMaxBags, GetBagInfo, LocalizeString, GetString, ZO_LinkHandler_CreateLink, ZO_LinkHandler_ParseLink, d, info
--- GLOBALS: string, math, pairs, select, tostring, type
+-- GLOBALS: _G, LibStub, ZO_SavedVars, SLASH_COMMANDS, LINK_STYLE_DEFAULT, ITEM_LINK_TYPE, BAG_WORN, BAG_BACKPACK, BAG_BANK, BAG_GUILDBANK, BAG_BUYBACK, BAG_TRANSFER, SI_TOOLTIP_ITEM_NAME
+-- GLOBALS: EVENT_TRADE_SUCCEEDED, EVENT_OPEN_BANK, EVENT_MAIL_TAKE_ATTACHED_ITEM_SUCCESS, EVENT_CLOSE_GUILD_BANK, EVENT_GUILD_BANK_ITEMS_READY, EVENT_GUILD_BANK_ITEM_ADDED, EVENT_GUILD_BANK_ITEM_REMOVED
+-- GLOBALS: GetSlotStackSize, GetItemLink, CallSecureProtected, ClearCursor, GetMaxBags, GetBagInfo, LocalizeString, GetString, ZO_LinkHandler_CreateLink, ZO_LinkHandler_ParseLink, TransferToGuildBank, TransferFromGuildBank, GetSelectedGuildBankId, DoesPlayerHaveGuildPermission, CheckInventorySpaceSilently, GetNextGuildBankSlotId, d, info
+-- GLOBALS: string, math, pairs, select, tostring, type, table, tonumber, ipairs, zo_strformat, zo_strtrim
 
 local function Print(format, ...)
 	if type(info) == 'function' then
@@ -384,8 +385,7 @@ end
 
 local function StackGuildBank()
 	local guildID = GetSelectedGuildBankId() -- internal id of selected guild
-	if isStackingGB or ZO_GuildBank:IsHidden() or not GetSetting('stackContainer'..BAG_GUILDBANK..guildID) then return end
-	isStackingGB = true
+	if isStackingGB or not GetSetting('stackContainer'..BAG_GUILDBANK..guildID) then return end
 
 	if not DoesPlayerHaveGuildPermission(guildID, 15) -- deposit
 	  or not DoesPlayerHaveGuildPermission(guildID, 16) then -- withdraw
@@ -396,6 +396,7 @@ local function StackGuildBank()
 		return
 	end
 
+	isStackingGB = true
 	-- scan guild bank
 	wipe(guildPositions)
 	local slot = nil
@@ -443,7 +444,7 @@ local function CreateSlashCommands()
 		if arg == '' or arg == 'help' then
 			Print('Stacked command help:'
 				..'\n  "|cFFFFFF/stack|r" to start stacking manually'
-				..'\n  "|cFFFFFF/stackgb|r" to start stacking manually'
+				..'\n  "|cFFFFFF/stackgb|r" to start stacking the guild bank manually'
 				..'\n  "|cFFFFFF/stacked stackToBank|r |cFF8040true|r" to stack to bank, |cFF8040false|r to stack to bags'
 				..'\n  "|cFFFFFF/stacked showMessages|r |cFF8040true|r" to show, |cFF8040false|r to hide movement notices'
 				..'\n  "|cFFFFFF/stacked list|r" to list all items excluded from stacking'
