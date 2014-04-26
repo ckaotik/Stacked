@@ -375,7 +375,7 @@ function DoGuildBankStacking(eventID)
 			-- wait for event EVENT_GUILD_BANK_ITEM_REMOVED
 			return
 		end
-	else
+	elseif currentItemLink then
 		Print('Stacking guild bank completed.')
 		isStackingGB = false
 		return
@@ -383,16 +383,15 @@ function DoGuildBankStacking(eventID)
 end
 
 local function StackGuildBank()
-	local guildID = GetSelectedGuildBankId()
+	local guildID = GetSelectedGuildBankId() -- internal id of selected guild
 	if isStackingGB or ZO_GuildBank:IsHidden() or not GetSetting('stackContainer'..BAG_GUILDBANK..guildID) then return end
 	isStackingGB = true
 
-	-- /script for i=1,19 do print(i..': '..tostring(DoesPlayerHaveGuildPermission(1, i))) end
-	if not DoesPlayerHaveGuildPermission(guildID, 20) then -- TODO: figure out permission ids
+	if not DoesPlayerHaveGuildPermission(guildID, 15) -- deposit
+	  or not DoesPlayerHaveGuildPermission(guildID, 16) then -- withdraw
 		Print('You need to have both withdrawal and deposit permissions to restack the guild bank')
-		-- return
-	end
-	if not CheckInventorySpaceSilently(2) then
+		return
+	elseif not CheckInventorySpaceSilently(2) then
 		Print('You need at least 2 empty bag slots to restack the guild bank.')
 		return
 	end
@@ -424,9 +423,8 @@ local function StackGuildBank()
 			end
 		end
 	end
-	-- /script for slot = 0, 500 do local link = GetItemLink(BAG_GUILDBANK, slot, LINK_STYLE_DEFAULT); if link ~= '' then d(slot..' - '..link) end end
 
-	-- remove single stacked items
+	-- remove items with only one stack
 	for itemID, slots in pairs(guildPositions) do
 		if #slots < 2 then
 			wipe(slots)
