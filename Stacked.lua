@@ -4,9 +4,6 @@ local addonName, addon, _ = 'Stacked', {}
 -- GLOBALS: GetSlotStackSize, GetItemLink, CallSecureProtected, ClearCursor, GetMaxBags, GetBagInfo, LocalizeString, GetString, ZO_LinkHandler_CreateLink, ZO_LinkHandler_ParseLink, d, info
 -- GLOBALS: string, math, pairs, select, tostring, type
 
-local em = GetEventManager()
--- /script d(coroutine)
-
 local function Print(format, ...)
 	if type(info) == 'function' then
 		info(format, ...)
@@ -17,22 +14,22 @@ local function Print(format, ...)
 	end
 end
 local function CleanText(text)
-	return LocalizeString('<<1>>', text) -- string.gsub(text or '', '(\^[^ :\124]+)', '')
+	-- return string.gsub(text or '', '(\^[^ :\124]+)', '')
+	-- return LocalizeString('<<1>>', text)
+	return zo_strformat(SI_TOOLTIP_ITEM_NAME, text)
 end
 
-local guildBankName = (GetString(1891)):gsub(GetString(790), '(.+)')
-      guildBankName = (GetString(1262)):match(guildBankName)
 local bagNames = {
 	-- [BAG_WORN] = 'Equipped',
 	[BAG_BACKPACK] = GetString(2258) or 'Backpack',
 	[BAG_BANK] = GetString(790) or 'Bank',
-	[BAG_GUILDBANK] = guildBankName or 'Guild Bank',
+	[BAG_GUILDBANK] = (GetString(1262)):match((GetString(1891)):gsub(GetString(790), '(.+)')) or 'Guild Bank',
 	-- [BAG_BUYBACK] = 'Buy Back',
 	-- [BAG_TRANSFER] = 'Transfer',
 }
 local function GetSlotText(bag, slot)
 	local result = bagNames[bag]
-	if slot then
+	if slot and addon.db.showSlot then
 		result = string.format('%s (Slot %d)', result, slot)
 	end
 	return result
@@ -115,16 +112,6 @@ local function CreateSettings()
 	local LAM = LibStub('LibAddonMenu-1.0')
 	local panel = LAM:CreateControlPanel(addonName..'Settings', addonName)
 
-	local descFormat = 'Enable stacking of items in your %s'
-	LAM:AddHeader(panel, addonName..'HeaderContainers', CleanText(GetString(512)))
-	for bag, name in ipairs(bagNames) do
-		LAM:AddCheckbox(panel, addonName..'ToggleContainer'..bag,
-			name, descFormat:format(name),
-			function() return GetSetting('stackContainer'..bag) end,
-			function(value) SetSetting('stackContainer'..bag, value) end
-		)
-	end
-
 	LAM:AddHeader(panel, addonName..'HeaderEvents', GetString(810))
 	LAM:AddCheckbox(panel, addonName..'ToggleTrade',
 		GetString(2073), 'Enable stacking after a trade was completed.',
@@ -139,14 +126,54 @@ local function CreateSettings()
 		GetString(2380), 'Enable stacking when opening your guild bank.',
 		function() return GetSetting('guildbank') end, function(value) SetSetting('guildbank', value) end)
 
+	local descFormat, bag = 'Enable stacking of items in your %s'
+	LAM:AddHeader(panel, addonName..'HeaderContainers', CleanText(GetString(512)))
+	bag = BAG_BACKPACK
+	LAM:AddCheckbox(panel, addonName..'ToggleContainer'..bag,
+		bagNames[bag], descFormat:format(bagNames[bag]),
+		function() return GetSetting('stackContainer'..bag) end, function(value) SetSetting('stackContainer'..bag, value) end
+	)
+	bag = BAG_BANK
+	LAM:AddCheckbox(panel, addonName..'ToggleContainer'..bag,
+		bagNames[bag], descFormat:format(bagNames[bag]),
+		function() return GetSetting('stackContainer'..bag) end, function(value) SetSetting('stackContainer'..bag, value) end
+	)
+	bag = BAG_GUILDBANK
+	for i = 1, 5 do
+		LAM:AddCheckbox(panel, addonName..'ToggleContainer'..bag..i,
+			bagNames[bag]..' '..i, descFormat:format(bagNames[bag]..' '..i),
+			function() return GetSetting('stackContainer'..bag..i) end, function(value) SetSetting('stackContainer'..bag..i, value) end
+		)
+	end
+
+	LAM:AddHeader(panel, addonName..'HeaderMoveTarget', 'Move to other bag')
+	LAM:AddDescription(panel, addonName..'MoveTargetDesc', 'When multiple locations contain the same item in incomplete stacks, those stacks may be merged together into one location.', nil)
+
+	descFormat = 'Enable moving partial stacks into your %s.'
+	bag = BAG_BACKPACK
+	LAM:AddCheckbox(panel, addonName..'ToggleMoveTarget'..bag,
+		bagNames[bag], descFormat:format(bagNames[bag]),
+		function() return GetSetting('moveTarget'..bag) end, function(value) SetSetting('moveTarget'..bag, value) end,
+		true, ('If enabled make sure to disable %s and %s!'):format(bagNames[BAG_BANK], bagNames[BAG_GUILDBANK])
+	)
+	bag = BAG_BANK
+	LAM:AddCheckbox(panel, addonName..'ToggleMoveTarget'..bag,
+		bagNames[bag], descFormat:format(bagNames[bag]),
+		function() return GetSetting('moveTarget'..bag) end, function(value) SetSetting('moveTarget'..bag, value) end
+	)
+	bag = BAG_GUILDBANK
+	LAM:AddCheckbox(panel, addonName..'ToggleMoveTarget'..bag,
+		bagNames[bag], descFormat:format(bagNames[bag]),
+		function() return GetSetting('moveTarget'..bag) end, function(value) SetSetting('moveTarget'..bag, value) end
+	)
+
 	LAM:AddHeader(panel, addonName..'HeaderGeneral', GetString(2539))
 	LAM:AddCheckbox(panel, addonName..'ToggleMessages',
 		GetString(19), 'Enable chat output when an item has been moved.',
 		function() return GetSetting('showMessages') end, function(value) SetSetting('showMessages', value) end)
-	LAM:AddDropdown(panel, addonName..'MoveTarget',
-		'Merge stacks into', 'Select where items should be moved when different locations contain partial stacks.',
-		{'None', bagNames[BAG_BACKPACK], bagNames[BAG_BANK]},
-		function(...) return GetSetting('moveTarget') end, function(value) SetSetting('moveTarget', value) end)
+	LAM:AddCheckbox(panel, addonName..'ToggleSlot',
+		'Output Slot', 'Enable to add which slot was affected to movement messages.',
+		function() return GetSetting('showSlot') end, function(value) SetSetting('showSlot', value) end)
 	LAM:AddEditBox(panel, addonName..'Exclude',
 		GetString(152), 'Add items that should not be touched when restacking, one itemID or itemLink per line',
 		true,
@@ -155,37 +182,82 @@ local function CreateSettings()
 end
 
 -- --------------------------------------------------------
---  Stack items together after trading
+--  Stack items together after trading/retrieving mail/...
 -- --------------------------------------------------------
-local function MoveItem(fromBag, fromSlot, toBag, toSlot, count)
+local function MoveItem(fromBag, fromSlot, toBag, toSlot, count, silent)
 	count = count or GetSlotStackSize(fromBag, fromSlot)
-
-	-- TransferToGuildBank(sourceBag, sourceSlot) / TransferFromGuildBank(slotId)
 
 	local success
 	if CallSecureProtected('PickupInventoryItem', fromBag, fromSlot, count) then
 		success = CallSecureProtected('PlaceInInventory', toBag, toSlot)
 	end
 
-	if addon.db.showMessages then
+	if addon.db.showMessages and not silent then
 		local itemLink = GetItemLink(fromBag, fromSlot, LINK_STYLE_DEFAULT)
 		local template = success and 'Moved %s x%d from %s to %s' or 'Failed to move %s x%d from %s to %s'
+		if fromBag == toBag then
+			template = success and 'Stacked %s x%d from %s to %s' or 'Failed to stack %s x%d from %s to %s'
+		end
 		Print(template, CleanText(itemLink), count, GetSlotText(fromBag, fromSlot), GetSlotText(toBag, toSlot))
 	end
 
 	-- clear the cursor to avoid issues
 	ClearCursor()
 end
+
 local positions = {}
+local function StackContainer(bag, itemKey, silent)
+	-- check if this bag may be stacked
+	if not GetSetting('stackContainer'..bag) then return end
+
+	local icon, numSlots = GetBagInfo(bag)
+	for slot = 0, numSlots do
+		local link = GetItemLink(bag, slot, LINK_STYLE_DEFAULT)
+		local itemID, uniqueID
+		if link then
+			_, _, _, itemID, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, uniqueID = ZO_LinkHandler_ParseLink(link)
+			itemID = itemID and tonumber(itemID)
+		end
+
+		-- don't touch if slot is empty or item is excluded
+		if itemID and not addon.db.exclude[itemID] then
+			local count, stackSize = GetSlotStackSize(bag, slot)
+			local total = count
+			if link and count < stackSize then
+				local key = tonumber(itemID..'.'..(uniqueID or 0))
+				local data = positions[key]
+
+				if itemKey and key ~= itemKey then
+					-- do nothing
+				elseif data then
+					total = total + data.count
+					local success = MoveItem(bag, slot, data.bag, data.slot, count, silent)
+					-- item was moved
+					if success and total > stackSize then
+						data.bag = bag
+						data.slot = slot
+						data.count = total - stackSize
+					end
+				else
+					-- first time encountering this item
+					positions[key] = {
+						bag = bag,
+						slot = slot,
+						count = count,
+					}
+				end
+			end
+		end
+	end
+end
+
 local function CheckRestack(event)
 	if (event == 'EVENT_MAIL_TAKE_ATTACHED_ITEM_SUCCESS' and not GetSetting('mail'))
 		or (event == 'EVENT_TRADE_SUCCEEDED' and not GetSetting('trade'))
-		or (event == 'EVENT_OPEN_BANK' and not GetSetting('bank'))
-		or (event == 'EVENT_GUILD_BANK_ITEMS_READY' and not GetSetting('guildbank')) then
+		or (event == 'EVENT_OPEN_BANK' and not GetSetting('bank')) then
 		return
 	end
 
-	wipe(positions)
 	local firstBag, lastBag, direction = 1, GetMaxBags(), 1
 	if GetSetting('moveTarget') == bagNames[BAG_BANK] then
 		-- to put items into bank, we need different traversal
@@ -194,64 +266,175 @@ local function CheckRestack(event)
 		direction = -1
 	end
 
+	wipe(positions)
 	for bag = firstBag, lastBag, direction do
-		local hasAccess = true
-		if bag == BAG_GUILDBANK then
-			-- TODO: check DoesPlayerHaveGuildPermission(GetSelectedGuildBankId(), )
-			hasAccess = not ZO_GuildBank:IsHidden()
-		elseif bag == BAG_BANK then
-			hasAccess = not ZO_PlayerBank:IsHidden()
-		end
+		StackContainer(bag)
 
-		if GetSetting('stackContainer'..bag) and hasAccess then
-			local icon, numSlots = GetBagInfo(bag)
-			for slot = 0, numSlots do
-				local link = GetItemLink(bag, slot, LINK_STYLE_DEFAULT)
-				local itemID, level
-				if link then
-					-- linkName, color, linkType, linkID
-					_, _, _, itemID, _, level = ZO_LinkHandler_ParseLink(link)
-					itemID = itemID and tonumber(itemID)
-				end
-
-				if itemID and not addon.db.exclude[itemID] then
-					-- don't touch excluded items
-					local count, stackSize = GetSlotStackSize(bag, slot)
-					local total = count
-					if link and count < stackSize then
-						local key = level and (itemID..':'..level) or itemID
-						local data = positions[key]
-						if data then
-							total = total + data.count
-							local success = MoveItem(bag, slot, data.bag, data.slot, count)
-							if success and total > stackSize then
-								data.bag = bag
-								data.slot = slot
-								data.count = total - stackSize
-							end
-						else
-							-- first time encountering this item
-							positions[key] = {
-								bag = bag,
-								slot = slot,
-								count = count,
-							}
-						end
-					end
-				end
-			end
-
-			if GetSetting('moveTarget') ~= bagNames[bag] then
-				-- don't stack from other containers into this one
-				for key, position in pairs(positions) do
-					if position.bag == bag then
-						wipe(positions[key])
-						positions[key] = nil
-					end
+		if GetSetting('moveTarget') ~= bagNames[bag] then
+			-- don't stack from other containers into this one
+			for key, position in pairs(positions) do
+				if position.bag == bag then
+					wipe(positions[key])
+					positions[key] = nil
 				end
 			end
 		end
 	end
+end
+
+-- --------------------------------------------------------
+--  Stack items in guild bank
+-- --------------------------------------------------------
+local guildPositions, isStackingGB = {}, false
+local currentItemLink, numItemsWithdrawn, numUsedStacks
+local function DoGuildBankStacking() end -- forward declaration
+
+local function DepositGuildBankItems(eventID)
+	if not currentItemLink then return end
+
+	if not eventID then
+		Print('Deposit %s x%d back to guild bank...', CleanText(currentItemLink), numItemsWithdrawn)
+	end
+
+	local _, numSlots = GetBagInfo(BAG_BACKPACK)
+	for slot = 0, numSlots do
+		local itemLink = GetItemLink(BAG_BACKPACK, slot, LINK_STYLE_DEFAULT)
+		local count = GetSlotStackSize(BAG_BACKPACK, slot)
+		if itemLink == currentItemLink then
+			if count < numItemsWithdrawn or GetSetting('moveTarget'..BAG_GUILDBANK) then
+				TransferToGuildBank(BAG_BACKPACK, slot)
+				numUsedStacks = numUsedStacks - 1
+				numItemsWithdrawn = numItemsWithdrawn - count
+
+				-- wait for event EVENT_GUILD_BANK_ITEM_ADDED
+				return
+			else
+				-- TODO: split stack
+				-- ZO_StackSplit, ZO_StackSplitSplit, ZO_StackSplitSpinnerDisplay
+				Print('%s x%d was not deposited. Please split this off and deposit manually.')
+			end
+		end
+	end
+
+	Print('Freed %d slot(s).', numUsedStacks)
+	currentItemLink = nil
+	DoGuildBankStacking()
+end
+function DoGuildBankStacking(eventID)
+	if not isStackingGB then return end
+
+	-- choose an item to restack
+	local slot, isNewItem
+	for item, slots in pairs(guildPositions) do
+		if eventID or not CheckInventorySpaceSilently(1) then
+			-- find item that was handled before
+			for i, gBankSlot in ipairs(slots) do
+				if GetSlotStackSize(BAG_GUILDBANK, gBankSlot) == 0 then
+					table.remove(guildPositions[item], i)
+					if #guildPositions[item] < 1 then
+						-- we're done with this item
+						guildPositions[item] = nil
+
+						-- restack in backpack
+						StackContainer(BAG_BACKPACK, item, true)
+						DepositGuildBankItems()
+
+						-- wait for DepositGuildBankItems to call DoGuildBankStacking
+						return
+					else
+						slot = slots[1]
+					end
+					break
+				end
+			end
+		else
+			-- first item wins
+			slot = slots[1]
+			isNewItem = true
+			break
+		end
+	end
+
+	if slot then
+		local itemLink = GetItemLink(BAG_GUILDBANK, slot, LINK_STYLE_DEFAULT)
+		local count, stackSize = GetSlotStackSize(BAG_GUILDBANK, slot)
+		if isNewItem then
+			Print('Stacking item %s...', CleanText(itemLink))
+			currentItemLink = itemLink
+			numItemsWithdrawn = 0
+			numUsedStacks = 0
+		end
+
+		if itemLink ~= '' and count > 0 and count < stackSize then
+			TransferFromGuildBank(slot)
+
+			Print('Withdrew %s x%d', CleanText(itemLink), count)
+			numItemsWithdrawn = numItemsWithdrawn + count
+			numUsedStacks = numUsedStacks + 1
+
+			-- wait for event EVENT_GUILD_BANK_ITEM_REMOVED
+			return
+		end
+	else
+		Print('Stacking guild bank completed.')
+		isStackingGB = false
+		return
+	end
+end
+
+local function StackGuildBank()
+	local guildID = GetSelectedGuildBankId()
+	if isStackingGB or ZO_GuildBank:IsHidden() or not GetSetting('stackContainer'..BAG_GUILDBANK..guildID) then return end
+	isStackingGB = true
+
+	-- /script for i=1,19 do print(i..': '..tostring(DoesPlayerHaveGuildPermission(1, i))) end
+	if not DoesPlayerHaveGuildPermission(guildID, 20) then -- TODO: figure out permission ids
+		Print('You need to have both withdrawal and deposit permissions to restack the guild bank')
+		-- return
+	end
+	if not CheckInventorySpaceSilently(2) then
+		Print('You need at least 2 empty bag slots to restack the guild bank.')
+		return
+	end
+
+	-- scan guild bank
+	wipe(guildPositions)
+	local slot = nil
+	while true do
+		slot = GetNextGuildBankSlotId(slot)
+		if not slot then break end
+
+		local itemLink = GetItemLink(BAG_GUILDBANK, slot, LINK_STYLE_DEFAULT)
+		local itemID, uniqueID, key
+		if itemLink ~= '' then
+			_, _, _, itemID, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, uniqueID = ZO_LinkHandler_ParseLink(itemLink)
+			itemID = itemID and tonumber(itemID)
+			key = tonumber( itemID..'.'..(uniqueID or 0) ) -- this should be exact since uniqueID is bitfield(?)
+		end
+
+		-- don't touch if slot is empty or item is excluded
+		if itemID and not addon.db.exclude[itemID] then
+			local count, stackSize = GetSlotStackSize(BAG_GUILDBANK, slot)
+			if count < stackSize then
+				-- store location
+				if not guildPositions[key] then
+					guildPositions[key] = {}
+				end
+				table.insert(guildPositions[key], slot)
+			end
+		end
+	end
+	-- /script for slot = 0, 500 do local link = GetItemLink(BAG_GUILDBANK, slot, LINK_STYLE_DEFAULT); if link ~= '' then d(slot..' - '..link) end end
+
+	-- remove single stacked items
+	for itemID, slots in pairs(guildPositions) do
+		if #slots < 2 then
+			wipe(slots)
+			guildPositions[itemID] = nil
+		end
+	end
+
+	DoGuildBankStacking()
 end
 
 -- --------------------------------------------------------
@@ -262,6 +445,7 @@ local function CreateSlashCommands()
 		if arg == '' or arg == 'help' then
 			Print('Stacked command help:'
 				..'\n  "|cFFFFFF/stack|r" to start stacking manually'
+				..'\n  "|cFFFFFF/stackgb|r" to start stacking manually'
 				..'\n  "|cFFFFFF/stacked stackToBank|r |cFF8040true|r" to stack to bank, |cFF8040false|r to stack to bags'
 				..'\n  "|cFFFFFF/stacked showMessages|r |cFF8040true|r" to show, |cFF8040false|r to hide movement notices'
 				..'\n  "|cFFFFFF/stacked list|r" to list all items excluded from stacking'
@@ -298,22 +482,32 @@ local function CreateSlashCommands()
 		end
 	end
 	SLASH_COMMANDS['/stack'] = CheckRestack
+	SLASH_COMMANDS['/stackgb'] = StackGuildBank
 end
+
+local em = GetEventManager()
 local function Initialize(eventCode, arg1, ...)
 	if arg1 ~= addonName then return end
 
-	-- addon.db = ZO_SavedVars:NewAccountWide(addonName..'DB', 1, nil, {
 	addon.db = ZO_SavedVars:New(addonName..'DB', 2, nil, {
 		-- default settings
 		showMessages = true,
-		moveTarget = 'None',
+		showSlot = true,
 		exclude = {
 			[30357] = true, -- lockpicks, item links seem broken
 		},
 		-- containers
 		['stackContainer'..BAG_BACKPACK] = true,
 		['stackContainer'..BAG_BANK] = true,
-		['stackContainer'..BAG_GUILDBANK] = true,
+		['stackContainer'..BAG_GUILDBANK..'1'] = true,
+		['stackContainer'..BAG_GUILDBANK..'2'] = true,
+		['stackContainer'..BAG_GUILDBANK..'3'] = true,
+		['stackContainer'..BAG_GUILDBANK..'4'] = true,
+		['stackContainer'..BAG_GUILDBANK..'5'] = true,
+		-- move stacks
+		['moveTaget'..BAG_BACKPACK] = false,
+		['moveTaget'..BAG_BANK] = false,
+		['moveTaget'..BAG_GUILDBANK] = false, -- applies to any GB with stacking allowed
 		-- events
 		trade = true,
 		mail = true,
@@ -328,7 +522,11 @@ local function Initialize(eventCode, arg1, ...)
 
 	em:RegisterForEvent(addonName, EVENT_TRADE_SUCCEEDED, function() CheckRestack('EVENT_TRADE_SUCCEEDED') end)
 	em:RegisterForEvent(addonName, EVENT_OPEN_BANK, function() CheckRestack('EVENT_OPEN_BANK') end)
-	em:RegisterForEvent(addonName, EVENT_GUILD_BANK_ITEMS_READY, function() CheckRestack('EVENT_GUILD_BANK_ITEMS_READY') end)
 	em:RegisterForEvent(addonName, EVENT_MAIL_TAKE_ATTACHED_ITEM_SUCCESS, function() CheckRestack('EVENT_MAIL_TAKE_ATTACHED_ITEM_SUCCESS') end)
+
+	em:RegisterForEvent(addonName, EVENT_CLOSE_GUILD_BANK, function() isStackingGB = false end)
+	em:RegisterForEvent(addonName, EVENT_GUILD_BANK_ITEMS_READY, StackGuildBank)
+	em:RegisterForEvent(addonName, EVENT_GUILD_BANK_ITEM_ADDED, function(eventID) DepositGuildBankItems(eventID) end)
+	em:RegisterForEvent(addonName, EVENT_GUILD_BANK_ITEM_REMOVED, function(eventID) DoGuildBankStacking(eventID) end)
 end
 em:RegisterForEvent(addonName, EVENT_ADD_ON_LOADED, Initialize)
