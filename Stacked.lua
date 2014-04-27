@@ -36,6 +36,14 @@ local function GetSlotText(bag, slot)
 	return result
 end
 
+-- generate a unique key for indexing in tables
+local function GetKey(itemID, level, uniqueID)
+	return string.format('%d:%d:%d', itemID or 0, level or 0, uniqueID or 0)
+end
+local function GetKeyData(key)
+	return SplitString(':', key)
+end
+
 local function GetLinkFromID(linkID, linkType)
 	local stub = string.rep(':0', 19)
 	return ZO_LinkHandler_CreateLink(linkID, nil, linkType or ITEM_LINK_TYPE, linkID .. stub)
@@ -195,11 +203,17 @@ local function MoveItem(fromBag, fromSlot, toBag, toSlot, count, silent)
 
 	if addon.db.showMessages and not silent then
 		local itemLink = GetItemLink(fromBag, fromSlot, LINK_STYLE_DEFAULT)
-		local template = success and 'Moved %s x%d from %s to %s' or 'Failed to move %s x%d from %s to %s'
+		--[[ local template = success and 'Moved %s x%d from %s to %s' or 'Failed to move %s x%d from %s to %s'
 		if fromBag == toBag then
 			template = success and 'Stacked %s x%d from %s to %s' or 'Failed to stack %s x%d from %s to %s'
 		end
-		Print(template, CleanText(itemLink), count, GetSlotText(fromBag, fromSlot), GetSlotText(toBag, toSlot))
+		Print(template, CleanText(itemLink), count, GetSlotText(fromBag, fromSlot), GetSlotText(toBag, toSlot)) --]]
+
+		local template = success and 'Moved <<2*1>> from <<3>> to <<4>>' or 'Failed to move <<2*1>> from <<3>> to <<4>>'
+		if fromBag == toBag then
+			template = success and 'Stacked <<2*1>> from <<3>> to <<4>>' or 'Failed to stack <<2*1>> from <<3>> to <<4>>'
+		end
+		Print( LocalizeString(template, itemLink, count, GetSlotText(fromBag, fromSlot), GetSlotText(toBag, toSlot)) )
 	end
 
 	-- clear the cursor to avoid issues
@@ -214,10 +228,11 @@ local function StackContainer(bag, itemKey, silent)
 	local icon, numSlots = GetBagInfo(bag)
 	for slot = 0, numSlots do
 		local link = GetItemLink(bag, slot, LINK_STYLE_DEFAULT)
-		local itemID, uniqueID
+		local itemID, key
 		if link then
-			_, _, _, itemID, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, uniqueID = ZO_LinkHandler_ParseLink(link)
+			local _, _, _, itemID, _, level, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, uniqueID = ZO_LinkHandler_ParseLink(link)
 			itemID = itemID and tonumber(itemID)
+			key = GetKey(itemID, level, uniqueID)
 		end
 
 		-- don't touch if slot is empty or item is excluded
@@ -225,7 +240,6 @@ local function StackContainer(bag, itemKey, silent)
 			local count, stackSize = GetSlotStackSize(bag, slot)
 			local total = count
 			if link and count < stackSize then
-				local key = tonumber(itemID..'.'..(uniqueID or 0))
 				local data = positions[key]
 
 				if itemKey and key ~= itemKey then
@@ -405,11 +419,11 @@ local function StackGuildBank()
 		if not slot then break end
 
 		local itemLink = GetItemLink(BAG_GUILDBANK, slot, LINK_STYLE_DEFAULT)
-		local itemID, uniqueID, key
+		local itemID, key
 		if itemLink ~= '' then
-			_, _, _, itemID, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, uniqueID = ZO_LinkHandler_ParseLink(itemLink)
+			local _, _, _, itemID, _, level, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, uniqueID = ZO_LinkHandler_ParseLink(itemLink)
 			itemID = itemID and tonumber(itemID)
-			key = tonumber( itemID..'.'..(uniqueID or 0) ) -- this should be exact since uniqueID is bitfield(?)
+			key = GetKey(itemID, level, uniqueID)
 		end
 
 		-- don't touch if slot is empty or item is excluded
@@ -426,10 +440,10 @@ local function StackGuildBank()
 	end
 
 	-- remove items with only one stack
-	for itemID, slots in pairs(guildPositions) do
+	for key, slots in pairs(guildPositions) do
 		if #slots < 2 then
 			wipe(slots)
-			guildPositions[itemID] = nil
+			guildPositions[key] = nil
 		end
 	end
 
