@@ -37,7 +37,9 @@ local function GetSlotText(bag, slot)
 end
 
 -- generate a unique key for indexing in tables
-local function GetKey(itemID, level, uniqueID)
+local function GetKey(itemID, level, uniqueID, isConsumable)
+	-- TODO: check if item type is ITEMTYPE_POTION. if so, use level. otherwise don't
+	if not isConsumable then level = 0 end
 	return string.format('%d:%d:%d', itemID or 0, level or 0, uniqueID or 0)
 end
 local function GetKeyData(key)
@@ -203,9 +205,13 @@ local function MoveItem(fromBag, fromSlot, toBag, toSlot, count, silent)
 
 	if addon.db.showMessages and not silent then
 		local itemLink = GetItemLink(fromBag, fromSlot, LINK_STYLE_DEFAULT)
-		local template = success and 'Moved <<2*1>> from <<3>> to <<4>>' or 'Failed to move <<2*1>> from <<3>> to <<4>>'
+		local template = success and 'Moved <<C:2*1>> from <<3>> to <<4>>' or 'Failed to move <<2*1>> from <<3>> to <<4>>'
 		if fromBag == toBag then
-			template = success and 'Stacked <<2*1>> from <<3>> to <<4>>' or 'Failed to stack <<2*1>> from <<3>> to <<4>>'
+			if addon.db.showSlot then
+				template = success and 'Stacked <<C:2*1>> from <<3>> to <<4>>' or 'Failed to stack <<2*1>> from <<3>> to <<4>>'
+			else
+				template = success and 'Stacked <<C:2*1>> in <<4>>' or 'Failed to stack <<2*1>> in <<4>>'
+			end
 		end
 		Print( LocalizeString(template, itemLink, count, GetSlotText(fromBag, fromSlot), GetSlotText(toBag, toSlot)) )
 	end
@@ -227,7 +233,7 @@ local function StackContainer(bag, itemKey, silent)
 			local level, uniqueID
 			_, _, _, itemID, _, level, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, uniqueID = ZO_LinkHandler_ParseLink(link)
 			itemID = itemID and tonumber(itemID)
-			key = GetKey(itemID, level, uniqueID)
+			key = GetKey(itemID, level, uniqueID, IsItemConsumable(bag, slot))
 		end
 
 		-- don't touch if slot is empty or item is excluded
@@ -419,7 +425,7 @@ local function StackGuildBank()
 			local level, uniqueID
 			_, _, _, itemID, _, level, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, uniqueID = ZO_LinkHandler_ParseLink(itemLink)
 			itemID = itemID and tonumber(itemID)
-			key = GetKey(itemID, level, uniqueID)
+			key = GetKey(itemID, level, uniqueID, IsItemConsumable(BAG_GUILDBANK, slot))
 		end
 
 		-- don't touch if slot is empty or item is excluded
