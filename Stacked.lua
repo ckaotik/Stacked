@@ -518,9 +518,9 @@ local function Initialize(eventCode, arg1, ...)
 		['stackContainer'..BAG_GUILDBANK..'4'] = true,
 		['stackContainer'..BAG_GUILDBANK..'5'] = true,
 		-- move stacks
-		['moveTaget'..BAG_BACKPACK] = false,
-		['moveTaget'..BAG_BANK] = false,
-		['moveTaget'..BAG_GUILDBANK] = false, -- applies to any GB with stacking allowed
+		['moveTarget'..BAG_BACKPACK] = false,
+		['moveTarget'..BAG_BANK] = false,
+		['moveTarget'..BAG_GUILDBANK] = false, -- applies to any GB with stacking allowed
 		-- events
 		trade = true,
 		mail = true,
