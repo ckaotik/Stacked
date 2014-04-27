@@ -135,19 +135,19 @@ local function CreateSettings()
 		GetString(2380), 'Enable stacking when opening your guild bank.',
 		function() return GetSetting('guildbank') end, function(value) SetSetting('guildbank', value) end)
 
-	local descFormat, bag = 'Enable stacking of items in your %s'
+	local descFormat = 'Enable stacking of items in your %s'
 	LAM:AddHeader(panel, addonName..'HeaderContainers', CleanText(GetString(512)))
-	bag = BAG_BACKPACK
+	local bag = BAG_BACKPACK
 	LAM:AddCheckbox(panel, addonName..'ToggleContainer'..bag,
 		bagNames[bag], descFormat:format(bagNames[bag]),
 		function() return GetSetting('stackContainer'..bag) end, function(value) SetSetting('stackContainer'..bag, value) end
 	)
-	bag = BAG_BANK
+	local bag = BAG_BANK
 	LAM:AddCheckbox(panel, addonName..'ToggleContainer'..bag,
 		bagNames[bag], descFormat:format(bagNames[bag]),
 		function() return GetSetting('stackContainer'..bag) end, function(value) SetSetting('stackContainer'..bag, value) end
 	)
-	bag = BAG_GUILDBANK
+	local bag = BAG_GUILDBANK
 	for i = 1, 5 do
 		LAM:AddCheckbox(panel, addonName..'ToggleContainer'..bag..i,
 			bagNames[bag]..' '..i, descFormat:format(bagNames[bag]..' '..i),
@@ -158,19 +158,19 @@ local function CreateSettings()
 	LAM:AddHeader(panel, addonName..'HeaderMoveTarget', 'Move to other bag')
 	LAM:AddDescription(panel, addonName..'MoveTargetDesc', 'When multiple locations contain the same item in incomplete stacks, those stacks may be merged together into one location.', nil)
 
-	descFormat = 'Enable moving partial stacks into your %s.'
-	bag = BAG_BACKPACK
-	LAM:AddCheckbox(panel, addonName..'ToggleMoveTarget'..bag,
-		bagNames[bag], descFormat:format(bagNames[bag]),
-		function() return GetSetting('moveTarget'..bag) end, function(value) SetSetting('moveTarget'..bag, value) end,
+	local descFormat = 'Enable moving partial stacks into your %s.'
+	local bag = BAG_BACKPACK
+	LAM:AddCheckbox(panel, addonName..'ToggleMoveTarget'..BAG_BACKPACK,
+		bagNames[BAG_BACKPACK], descFormat:format(bagNames[BAG_BACKPACK]),
+		function() return GetSetting('moveTarget'..BAG_BACKPACK) end, function(value) SetSetting('moveTarget'..BAG_BACKPACK, value) end,
 		true, ('If enabled make sure to disable %s and %s!'):format(bagNames[BAG_BANK], bagNames[BAG_GUILDBANK])
 	)
-	bag = BAG_BANK
+	local bag = BAG_BANK
 	LAM:AddCheckbox(panel, addonName..'ToggleMoveTarget'..bag,
 		bagNames[bag], descFormat:format(bagNames[bag]),
 		function() return GetSetting('moveTarget'..bag) end, function(value) SetSetting('moveTarget'..bag, value) end
 	)
-	bag = BAG_GUILDBANK
+	local bag = BAG_GUILDBANK
 	LAM:AddCheckbox(panel, addonName..'ToggleMoveTarget'..bag,
 		bagNames[bag], descFormat:format(bagNames[bag]),
 		function() return GetSetting('moveTarget'..bag) end, function(value) SetSetting('moveTarget'..bag, value) end
@@ -203,12 +203,6 @@ local function MoveItem(fromBag, fromSlot, toBag, toSlot, count, silent)
 
 	if addon.db.showMessages and not silent then
 		local itemLink = GetItemLink(fromBag, fromSlot, LINK_STYLE_DEFAULT)
-		--[[ local template = success and 'Moved %s x%d from %s to %s' or 'Failed to move %s x%d from %s to %s'
-		if fromBag == toBag then
-			template = success and 'Stacked %s x%d from %s to %s' or 'Failed to stack %s x%d from %s to %s'
-		end
-		Print(template, CleanText(itemLink), count, GetSlotText(fromBag, fromSlot), GetSlotText(toBag, toSlot)) --]]
-
 		local template = success and 'Moved <<2*1>> from <<3>> to <<4>>' or 'Failed to move <<2*1>> from <<3>> to <<4>>'
 		if fromBag == toBag then
 			template = success and 'Stacked <<2*1>> from <<3>> to <<4>>' or 'Failed to stack <<2*1>> from <<3>> to <<4>>'
@@ -230,7 +224,8 @@ local function StackContainer(bag, itemKey, silent)
 		local link = GetItemLink(bag, slot, LINK_STYLE_DEFAULT)
 		local itemID, key
 		if link then
-			local _, _, _, itemID, _, level, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, uniqueID = ZO_LinkHandler_ParseLink(link)
+			local level, uniqueID
+			_, _, _, itemID, _, level, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, uniqueID = ZO_LinkHandler_ParseLink(link)
 			itemID = itemID and tonumber(itemID)
 			key = GetKey(itemID, level, uniqueID)
 		end
@@ -274,7 +269,7 @@ local function CheckRestack(event)
 	end
 
 	local firstBag, lastBag, direction = 1, GetMaxBags(), 1
-	if GetSetting('moveTarget') == bagNames[BAG_BANK] then
+	if GetSetting('moveTarget'..BAG_BANK) then
 		-- to put items into bank, we need different traversal
 		firstBag = lastBag
 		lastBag = 1
@@ -285,7 +280,7 @@ local function CheckRestack(event)
 	for bag = firstBag, lastBag, direction do
 		StackContainer(bag)
 
-		if GetSetting('moveTarget') ~= bagNames[bag] then
+		if not GetSetting('moveTarget'..bag) then
 			-- don't stack from other containers into this one
 			for key, position in pairs(positions) do
 				if position.bag == bag then
@@ -421,7 +416,8 @@ local function StackGuildBank()
 		local itemLink = GetItemLink(BAG_GUILDBANK, slot, LINK_STYLE_DEFAULT)
 		local itemID, key
 		if itemLink ~= '' then
-			local _, _, _, itemID, _, level, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, uniqueID = ZO_LinkHandler_ParseLink(itemLink)
+			local level, uniqueID
+			_, _, _, itemID, _, level, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, uniqueID = ZO_LinkHandler_ParseLink(itemLink)
 			itemID = itemID and tonumber(itemID)
 			key = GetKey(itemID, level, uniqueID)
 		end
