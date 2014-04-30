@@ -123,4 +123,4 @@ em:RegisterForEvent(addonName, EVENT_OPEN_BANK, function() CheckRestack('EVENT_O
 em:RegisterForEvent(addonName, EVENT_MAIL_TAKE_ATTACHED_ITEM_SUCCESS, function() CheckRestack('EVENT_MAIL_TAKE_ATTACHED_ITEM_SUCCESS') end)
 
 addon.slashCommandHelp = (addon.slashCommandHelp or '') .. '\n  "|cFFFFFF/stack|r" to start stacking manually'
-SLASH_COMMANDS['/stack'] = addon.CheckRestack
+SLASH_COMMANDS['/stack'] = CheckRestack
