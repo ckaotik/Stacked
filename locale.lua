@@ -8,7 +8,7 @@ addon.L = {
 	containers = LocalizeString('<<1>>', GetString(512)),
 	backpack = GetString(2258),
 	bank = GetString(790),
-	guildbank = GetString(1262):match( GetString(1891):gsub(GetString(790), '(.+)') ),
+	guildbank = 'guild bank',
 
 	events = GetString(810),
 	tradeSucceeded = GetString(2073):gsub('%.$', ''),
@@ -17,6 +17,7 @@ addon.L = {
 
 if locale == 'de' then
 	-- German
+	addon.L['guildbank'] = 'Gildenbank'
 elseif locale == 'fr' then
 	-- French
 end
