@@ -176,12 +176,18 @@ end
 addon.slashCommandHelp = (addon.slashCommandHelp or '') .. '\n  "|cFFFFFF/stackgb|r" to start stacking the guild bank manually'
 SLASH_COMMANDS['/stackgb'] = StackGuildBank
 
--- we're using just one binding for both, container and guld bank stacking
+-- adjust keybinds since we use one binding for both, container and guld bank stacking
+if not addon.bindings[1] then
+	table.insert(addon.bindings, {
+		name = 'Stack',
+		keybind = 'STACKED_STACK',
+	})
+end
 local orig = addon.bindings[1].callback
 addon.bindings[1].callback = function()
 	if not ZO_GuildBank:IsHidden() then
 		StackGuildBank()
-	else
+	elseif type(orig) == 'function' then
 		orig()
 	end
 end

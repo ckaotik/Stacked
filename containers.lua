@@ -121,8 +121,7 @@ SLASH_COMMANDS['/stack'] = CheckRestack
 table.insert(addon.bindings, {
 	name = 'Stack',
 	keybind = 'STACKED_STACK',
-	callback = CheckRestack,
-	-- visible = function() return ZO_GuildBank:IsHidden() end,
+	callback = CheckRestack
 })
 
 local em = GetEventManager()
