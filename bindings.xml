@@ -4,9 +4,6 @@
 			<Action name="STACKED_STACK">
 				<Down>SLASH_COMMANDS['/stack']()</Down>
 			</Action>
-			<Action name="STACKED_STACKGB">
-				<Down>SLASH_COMMANDS['/stackgb']()</Down>
-			</Action>
 		</Category>
 	</Layer>
 </Bindings>

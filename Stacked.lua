@@ -27,7 +27,6 @@ end
 
 addon.bindings = { alignment = KEYBIND_STRIP_ALIGN_LEFT }
 ZO_CreateStringId('SI_BINDING_NAME_STACKED_STACK', 'Stack')
-ZO_CreateStringId('SI_BINDING_NAME_STACKED_STACKGB', 'Stack Guild Bank')
 
 -- --------------------------------------------------------
 --  Setup

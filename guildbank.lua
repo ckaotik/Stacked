@@ -2,7 +2,7 @@ local addonName, _ = 'Stacked'
 local addon = _G[addonName]
 local L = addon.L
 
--- GLOBALS: LINK_STYLE_DEFAULT, BAG_GUILDBANK, BAG_BACKPACK, SI_TOOLTIP_ITEM_NAME, GUILD_PRIVILEGE_BANK_DEPOSIT
+-- GLOBALS: LINK_STYLE_DEFAULT, BAG_GUILDBANK, BAG_BACKPACK, SI_TOOLTIP_ITEM_NAME, GUILD_PRIVILEGE_BANK_DEPOSIT, KEYBIND_STRIP, ZO_GuildBank
 -- GLOBALS: GetItemLink, GetNextGuildBankSlotId, GetSlotStackSize, CheckInventorySpaceSilently, GetBagInfo, ZO_LinkHandler_ParseLink, DoesPlayerHaveGuildPermission, DoesGuildHavePrivilege, TransferToGuildBank, TransferFromGuildBank, GetSelectedGuildBankId, IsItemConsumable, LocalizeString, GetItemInstanceId
 -- GLOBALS: tonumber, table, pairs, ipairs, zo_strformat
 
@@ -175,12 +175,17 @@ end
 
 addon.slashCommandHelp = (addon.slashCommandHelp or '') .. '\n  "|cFFFFFF/stackgb|r" to start stacking the guild bank manually'
 SLASH_COMMANDS['/stackgb'] = StackGuildBank
-table.insert(addon.bindings, {
-	name = 'Stack',
-	keybind = 'STACKED_STACKGB',
-	callback = StackGuildBank,
-	visible = function() return not ZO_GuildBank:IsHidden() and CanStackGuildBank(GetSelectedGuildBankId()) end,
-})
+
+-- we're using just one binding for both, container and guld bank stacking
+local orig = addon.bindings[1].callback
+addon.bindings[1].callback = function()
+	if not ZO_GuildBank:IsHidden() then
+		StackGuildBank()
+	else
+		orig()
+	end
+end
+addon.bindings[1].visible = function() return ZO_GuildBank:IsHidden() or CanStackGuildBank(GetSelectedGuildBankId()) end
 
 local em = GetEventManager()
 em:RegisterForEvent(addonName, EVENT_GUILD_BANK_ITEMS_READY, StackGuildBank)

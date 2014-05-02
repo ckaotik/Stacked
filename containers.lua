@@ -2,7 +2,7 @@ local addonName, _ = 'Stacked'
 local addon = _G[addonName]
 local L = addon.L
 
--- GLOBALS: LINK_STYLE_DEFAULT, BAG_BANK
+-- GLOBALS: LINK_STYLE_DEFAULT, BAG_BANK, KEYBIND_STRIP, ZO_GuildBank
 -- GLOBALS: GetSlotStackSize, ClearCursor, LocalizeString, CallSecureProtected, GetBagInfo, GetItemLink, GetMaxBags, IsItemConsumable, ZO_LinkHandler_ParseLink, GetItemInstanceId
 -- GLOBALS: string, pairs, tonumber
 
@@ -122,7 +122,7 @@ table.insert(addon.bindings, {
 	name = 'Stack',
 	keybind = 'STACKED_STACK',
 	callback = CheckRestack,
-	visible = function() return ZO_GuildBank:IsHidden() end,
+	-- visible = function() return ZO_GuildBank:IsHidden() end,
 })
 
 local em = GetEventManager()
