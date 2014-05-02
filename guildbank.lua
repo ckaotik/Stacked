@@ -28,8 +28,8 @@ local function DoGuildBankStacking() end -- forward declaration
 local function DepositGuildBankItems(eventID)
 	if not currentItemLink then return end
 
-	if not eventID then
-		-- addon.Print(LocalizeString('Deposit <<C:2*1>> back to guild bank...', currentItemLink, numItemsWithdrawn) )
+	if not eventID and addon.GetSetting('showGBStackDetail') then
+		addon.Print(LocalizeString('Deposit <<C:2*1>> back to guild bank...', currentItemLink, numItemsWithdrawn) )
 	end
 
 	local _, numSlots = GetBagInfo(BAG_BACKPACK)
@@ -52,7 +52,6 @@ local function DepositGuildBankItems(eventID)
 		end
 	end
 
-	-- addon.Print(LocalizeString('Freed <<C:1*2>>.', numUsedStacks, 'slot'))
 	numFreeSlots = numFreeSlots + numUsedStacks
 	currentItemLink = nil
 	DoGuildBankStacking()
@@ -105,7 +104,9 @@ function DoGuildBankStacking(eventID)
 		if itemLink ~= '' and count > 0 and count < stackSize then
 			TransferFromGuildBank(slot)
 
-			-- addon.Print(LocalizeString('Withdrew <<C:2*1>>', itemLink, count))
+			if addon.GetSetting('showGBStackDetail') then
+				addon.Print(LocalizeString('Withdrew <<C:2*1>>', itemLink, count))
+			end
 			numItemsWithdrawn = numItemsWithdrawn + count
 			numUsedStacks = numUsedStacks + 1
 
@@ -187,14 +188,16 @@ local orig = addon.bindings[1].callback
 addon.bindings[1].callback = function()
 	if not ZO_GuildBank:IsHidden() then
 		StackGuildBank()
-	elseif type(orig) == 'function' then
+	elseif orig then
 		orig()
 	end
 end
 addon.bindings[1].visible = function() return ZO_GuildBank:IsHidden() or CanStackGuildBank(GetSelectedGuildBankId()) end
 
 local em = GetEventManager()
-em:RegisterForEvent(addonName, EVENT_GUILD_BANK_ITEMS_READY, StackGuildBank)
+em:RegisterForEvent(addonName, EVENT_GUILD_BANK_ITEMS_READY, function()
+	if addon.GetSetting('guildbank') then StackGuildBank() end
+end)
 em:RegisterForEvent(addonName, EVENT_GUILD_BANK_ITEM_ADDED, function(eventID) DepositGuildBankItems(eventID) end)
 em:RegisterForEvent(addonName, EVENT_GUILD_BANK_ITEM_REMOVED, function(eventID) DoGuildBankStacking(eventID) end)
 em:RegisterForEvent(addonName, EVENT_GUILD_BANK_TRANSFER_ERROR, function()

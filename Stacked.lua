@@ -34,10 +34,12 @@ ZO_CreateStringId('SI_BINDING_NAME_STACKED_STACK', 'Stack')
 local function Initialize(eventCode, arg1, ...)
 	if arg1 ~= addonName then return end
 
+	-- TODO: split settings & pull from their modules
 	addon.db = ZO_SavedVars:New(addonName..'DB', 3, nil, {
 		-- default settings
 		showMessages = true,
 		showSlot = true,
+		showGBStackDetail = true,
 		exclude = {
 			[30357] = true, -- lockpicks
 		},
@@ -45,11 +47,11 @@ local function Initialize(eventCode, arg1, ...)
 		-- containers
 		['stackContainer'..BAG_BACKPACK] = true,
 		['stackContainer'..BAG_BANK] = true,
-		['stackContainer'..BAG_GUILDBANK..'1'] = true,
-		['stackContainer'..BAG_GUILDBANK..'2'] = true,
-		['stackContainer'..BAG_GUILDBANK..'3'] = true,
-		['stackContainer'..BAG_GUILDBANK..'4'] = true,
-		['stackContainer'..BAG_GUILDBANK..'5'] = true,
+		['stackContainer'..BAG_GUILDBANK..'1'] = false,
+		['stackContainer'..BAG_GUILDBANK..'2'] = false,
+		['stackContainer'..BAG_GUILDBANK..'3'] = false,
+		['stackContainer'..BAG_GUILDBANK..'4'] = false,
+		['stackContainer'..BAG_GUILDBANK..'5'] = false,
 
 		-- move stacks
 		['moveTarget'..BAG_BACKPACK] = false,
@@ -60,7 +62,7 @@ local function Initialize(eventCode, arg1, ...)
 		trade = true,
 		mail = true,
 		bank = true,
-		guildbank = true,
+		guildbank = false,
 	})
 
 	addon.CreateSlashCommands()

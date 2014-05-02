@@ -142,7 +142,7 @@ function addon.CreateSettings()
 		GetString(152), 'Add items that should not be touched when restacking, one itemID or itemLink per line',
 		true,
 		function() return GetSetting('exclude') end, function(value) SetSetting('exclude', value) end)
-	LAM:AddDescription(panel, addonName..'ExcludeDesc', 'Add a new line with either the item\'s ID or the item\'s link by using "'..GetString(1796)..'"" and copying it into this text box.\nDon\'t know which item an id represents? Use "/stacked list" to get clickable links of all excluded items.', nil)
+	LAM:AddDescription(panel, addonName..'ExcludeDesc', 'Add a new line with either the item\'s ID or the item\'s link by using "'..GetString(1796)..'" and copying it into this text box.\nDon\'t know which item an id represents? Use "/stacked list" to get clickable links of all excluded items.', nil)
 end
 
 addon.slashCommandHelp = (addon.slashCommandHelp or '')
