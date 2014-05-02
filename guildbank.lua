@@ -2,17 +2,25 @@ local addonName, _ = 'Stacked'
 local addon = _G[addonName]
 local L = addon.L
 
--- GLOBALS: LINK_STYLE_DEFAULT, BAG_GUILDBANK, BAG_BACKPACK, SI_TOOLTIP_ITEM_NAME
--- GLOBALS: GetItemLink, GetNextGuildBankSlotId, GetSlotStackSize, CheckInventorySpaceSilently, GetBagInfo, ZO_LinkHandler_ParseLink, DoesPlayerHaveGuildPermission, TransferToGuildBank, TransferFromGuildBank, GetSelectedGuildBankId, IsItemConsumable
--- GLOBALS: tonumber, table, pairs, ipairs, wipe, zo_strformat
+-- GLOBALS: LINK_STYLE_DEFAULT, BAG_GUILDBANK, BAG_BACKPACK, SI_TOOLTIP_ITEM_NAME, GUILD_PRIVILEGE_BANK_DEPOSIT
+-- GLOBALS: GetItemLink, GetNextGuildBankSlotId, GetSlotStackSize, CheckInventorySpaceSilently, GetBagInfo, ZO_LinkHandler_ParseLink, DoesPlayerHaveGuildPermission, DoesGuildHavePrivilege, TransferToGuildBank, TransferFromGuildBank, GetSelectedGuildBankId, IsItemConsumable, LocalizeString, GetItemInstanceId
+-- GLOBALS: tonumber, table, pairs, ipairs, zo_strformat
 
 local guildPositions, isStackingGB = {}, false
+local numFreeSlots = 0
 local currentItemLink, numItemsWithdrawn, numUsedStacks
 
-local function CleanText(text)
-	-- return string.gsub(text or '', '(\^[^ :\124]+)', '')
-	-- return LocalizeString('<<1>>', text)
-	return zo_strformat(SI_TOOLTIP_ITEM_NAME, text)
+local function CanStackGuildBank(guildID)
+	local errorMsg
+	if not DoesGuildHavePrivilege(guildID, GUILD_PRIVILEGE_BANK_DEPOSIT) then
+		errorMsg = 'This guild has not enough members to use the guild bank.'
+	elseif not DoesPlayerHaveGuildPermission(guildID, 15) -- deposit
+	  or not DoesPlayerHaveGuildPermission(guildID, 16) then -- withdraw
+		errorMsg = 'You need to have both withdrawal and deposit permissions to restack the guild bank'
+	elseif not CheckInventorySpaceSilently(2) then
+		errorMsg = 'You need at least 2 empty bag slots to restack the guild bank.'
+	end
+	return not errorMsg, errorMsg
 end
 
 local function DoGuildBankStacking() end -- forward declaration
@@ -21,7 +29,7 @@ local function DepositGuildBankItems(eventID)
 	if not currentItemLink then return end
 
 	if not eventID then
-		addon.Print('Deposit %s x%d back to guild bank...', CleanText(currentItemLink), numItemsWithdrawn)
+		-- addon.Print(LocalizeString('Deposit <<C:2*1>> back to guild bank...', currentItemLink, numItemsWithdrawn) )
 	end
 
 	local _, numSlots = GetBagInfo(BAG_BACKPACK)
@@ -38,13 +46,14 @@ local function DepositGuildBankItems(eventID)
 				return
 			else
 				-- TODO: split stack
-				-- ZO_StackSplit, ZO_StackSplitSplit, ZO_StackSplitSpinnerDisplay
-				addon.Print('%s x%d was not deposited. Please split this off and deposit manually.')
+				-- ZO_StackSplit, ZO_StackSplitSplit, ZO_StackSplitSpinnerDisplay, ZO_Menu
+				addon.Print(LocalizeString('<<C:2*1>> was not deposited. Please do so manually.', itemLink, numItemsWithdrawn))
 			end
 		end
 	end
 
-	addon.Print('Freed %d slot(s).', numUsedStacks)
+	-- addon.Print(LocalizeString('Freed <<C:1*2>>.', numUsedStacks, 'slot'))
+	numFreeSlots = numFreeSlots + numUsedStacks
 	currentItemLink = nil
 	DoGuildBankStacking()
 end
@@ -87,7 +96,7 @@ function DoGuildBankStacking(eventID)
 		local itemLink = GetItemLink(BAG_GUILDBANK, slot, LINK_STYLE_DEFAULT)
 		local count, stackSize = GetSlotStackSize(BAG_GUILDBANK, slot)
 		if isNewItem then
-			addon.Print('Stacking item %s...', CleanText(itemLink))
+			addon.Print(LocalizeString('Stacking <<C:1>>...', itemLink))
 			currentItemLink = itemLink
 			numItemsWithdrawn = 0
 			numUsedStacks = 0
@@ -96,36 +105,37 @@ function DoGuildBankStacking(eventID)
 		if itemLink ~= '' and count > 0 and count < stackSize then
 			TransferFromGuildBank(slot)
 
-			addon.Print('Withdrew %s x%d', CleanText(itemLink), count)
+			-- addon.Print(LocalizeString('Withdrew <<C:2*1>>', itemLink, count))
 			numItemsWithdrawn = numItemsWithdrawn + count
 			numUsedStacks = numUsedStacks + 1
 
 			-- wait for event EVENT_GUILD_BANK_ITEM_REMOVED
 			return
 		end
-	elseif currentItemLink then
-		addon.Print('Stacking guild bank completed.')
+	elseif not currentItemLink then
+		addon.Print(LocalizeString('Stacking guild bank completed. Freed <<1>> slot(s).', numFreeSlots))
 		isStackingGB = false
 		return
 	end
 end
 
+local lastGuildID
 local function StackGuildBank()
 	local guildID = GetSelectedGuildBankId() -- internal id of selected guild
-	if isStackingGB or not addon.GetSetting('stackContainer'..BAG_GUILDBANK..guildID) then return end
+	if lastGuildID == guildID or isStackingGB or not addon.GetSetting('stackContainer'..BAG_GUILDBANK..guildID) then return end
 
-	if not DoesPlayerHaveGuildPermission(guildID, 15) -- deposit
-	  or not DoesPlayerHaveGuildPermission(guildID, 16) then -- withdraw
-		addon.Print('You need to have both withdrawal and deposit permissions to restack the guild bank')
-		return
-	elseif not CheckInventorySpaceSilently(2) then
-		addon.Print('You need at least 2 empty bag slots to restack the guild bank.')
+	lastGuildID = guildID
+	local canStackGuildBank, errorMsg = CanStackGuildBank(guildID)
+	if errorMsg then
+		addon.Print(errorMsg)
 		return
 	end
 
 	isStackingGB = true
+	numFreeSlots = 0
+
 	-- scan guild bank
-	wipe(guildPositions)
+	addon.wipe(guildPositions)
 	local slot = nil
 	while true do
 		slot = GetNextGuildBankSlotId(slot)
@@ -134,10 +144,9 @@ local function StackGuildBank()
 		local itemLink = GetItemLink(BAG_GUILDBANK, slot, LINK_STYLE_DEFAULT)
 		local itemID, key
 		if itemLink ~= '' then
-			local level, uniqueID
-			_, _, _, itemID, _, level, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, uniqueID = ZO_LinkHandler_ParseLink(itemLink)
+			_, _, _, itemID = ZO_LinkHandler_ParseLink(itemLink)
 			itemID = itemID and tonumber(itemID)
-			key = addon.GetKey(itemID, level, uniqueID, IsItemConsumable(BAG_GUILDBANK, slot))
+			key = GetItemInstanceId(BAG_GUILDBANK, slot)
 		end
 
 		-- don't touch if slot is empty or item is excluded
@@ -156,7 +165,7 @@ local function StackGuildBank()
 	-- remove items with only one stack
 	for key, slots in pairs(guildPositions) do
 		if #slots < 2 then
-			wipe(slots)
+			addon.wipe(slots)
 			guildPositions[key] = nil
 		end
 	end
@@ -164,11 +173,32 @@ local function StackGuildBank()
 	DoGuildBankStacking()
 end
 
+addon.slashCommandHelp = (addon.slashCommandHelp or '') .. '\n  "|cFFFFFF/stackgb|r" to start stacking the guild bank manually'
+SLASH_COMMANDS['/stackgb'] = StackGuildBank
+table.insert(addon.bindings, {
+	name = 'Stack',
+	keybind = 'STACKED_STACKGB',
+	callback = StackGuildBank,
+	visible = function() return not ZO_GuildBank:IsHidden() and CanStackGuildBank(GetSelectedGuildBankId()) end,
+})
+
 local em = GetEventManager()
 em:RegisterForEvent(addonName, EVENT_GUILD_BANK_ITEMS_READY, StackGuildBank)
 em:RegisterForEvent(addonName, EVENT_GUILD_BANK_ITEM_ADDED, function(eventID) DepositGuildBankItems(eventID) end)
 em:RegisterForEvent(addonName, EVENT_GUILD_BANK_ITEM_REMOVED, function(eventID) DoGuildBankStacking(eventID) end)
-em:RegisterForEvent(addonName, EVENT_CLOSE_GUILD_BANK, function() isStackingGB = false end)
-
-addon.slashCommandHelp = (addon.slashCommandHelp or '') .. '\n  "|cFFFFFF/stackgb|r" to start stacking the guild bank manually'
-SLASH_COMMANDS['/stackgb'] = StackGuildBank
+em:RegisterForEvent(addonName, EVENT_GUILD_BANK_TRANSFER_ERROR, function()
+	addon.Print(LocalizeString('Stacking <<C:1>> failed.', currentItemLink))
+	currentItemLink = nil
+	DoGuildBankStacking()
+end)
+em:RegisterForEvent(addonName, EVENT_OPEN_GUILD_BANK, function()
+	KEYBIND_STRIP:AddKeybindButtonGroup(addon.bindings)
+end)
+em:RegisterForEvent(addonName, EVENT_CLOSE_GUILD_BANK, function()
+	isStackingGB = false
+	lastGuildID = nil
+	KEYBIND_STRIP:RemoveKeybindButtonGroup(addon.bindings)
+end)
+em:RegisterForEvent(addonName, EVENT_GUILD_BANK_SELECTED, function(self, guildID)
+	KEYBIND_STRIP:UpdateKeybindButtonGroup(addon.bindings)
+end)

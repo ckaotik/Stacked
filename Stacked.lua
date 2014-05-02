@@ -25,15 +25,9 @@ function addon.Print(format, ...)
 	end
 end
 
--- generate a unique key for indexing in tables
-function addon.GetKey(itemID, level, uniqueID, isConsumable)
-	-- TODO: check if item type is ITEMTYPE_POTION. if so, use level. otherwise don't
-	if not isConsumable then level = 0 end
-	return string.format('%d:%d:%d', itemID or 0, level or 0, uniqueID or 0)
-end
-function addon.GetKeyData(key)
-	return SplitString(':', key)
-end
+addon.bindings = { alignment = KEYBIND_STRIP_ALIGN_LEFT }
+ZO_CreateStringId('SI_BINDING_NAME_STACKED_STACK', 'Stack')
+ZO_CreateStringId('SI_BINDING_NAME_STACKED_STACKGB', 'Stack Guild Bank')
 
 -- --------------------------------------------------------
 --  Setup

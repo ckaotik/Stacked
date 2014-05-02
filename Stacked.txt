@@ -11,6 +11,9 @@ libs\LibAddonMenu-1.0\LibAddonMenu-1.0.lua
 
 Stacked.lua
 locale.lua
+
 containers.lua
 guildbank.lua
+
 settings.lua
+bindings.xml
