@@ -138,6 +138,9 @@ function addon.CreateSettings()
 	LAM:AddCheckbox(panel, addonName..'ToggleSlot',
 		'Output Slot', 'Enable to add which slot was affected to movement messages.',
 		function() return GetSetting('showSlot') end, function(value) SetSetting('showSlot', value) end)
+	LAM:AddCheckbox(panel, addonName..'ToggleGBStack',
+		'Output Guild Bank Details', 'Enable to show messages when items are moved for guild bank stacking.',
+		function() return GetSetting('showGBStackDetail') end, function(value) SetSetting('showGBStackDetail', value) end)
 	LAM:AddEditBox(panel, addonName..'Exclude',
 		GetString(152), 'Add items that should not be touched when restacking, one itemID or itemLink per line',
 		true,
@@ -148,6 +151,7 @@ end
 addon.slashCommandHelp = (addon.slashCommandHelp or '')
 	..'\n  "|cFFFFFF/stacked showMessages|r |cFF8040true|r" to show, |cFF8040false|r to hide movement notices'
 	..'\n  "|cFFFFFF/stacked showSlot|r |cFF8040true|r" to show, |cFF8040false|r to hide slot numbers in movement notices'
+	..'\n  "|cFFFFFF/stacked showGBStackDetail|r |cFF8040true|r" to show, |cFF8040false|r to hide detailed messages when doing guild bank stacking'
 	..'\n  "|cFFFFFF/stacked list|r" to list all items excluded from stacking'
 	..'\n  "|cFFFFFF/stacked exclude|r |cFF80401234|r" to exclude the item with id 1234'
 	..'\n  "|cFFFFFF/stacked exclude|r |cFF8040[Item Link]|r" to exclude the linked item'
