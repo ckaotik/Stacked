@@ -11,6 +11,7 @@ Currently only via ingame slash commands. Use `/stacked` or `/stacked help` to g
 - `/stackgb` to start stacking the guild bank manually
 - `/stacked showMessages true` to show, false to hide movement notices
 - `/stacked showSlot true` to show, false to hide slot numbers in movement notices
+- `/stacked showGBStackDetail true` to show, false to hide detailed messages when doing guild bank stacking
 - `/stacked list` to list all items excluded from stacking
 - `/stacked exclude 1234` to exclude the item with id 1234
 - `/stacked include 1234` to re-include the item with id 1234
