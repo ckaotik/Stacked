@@ -42,9 +42,6 @@ end
 
 local positions = {}
 function addon.StackContainer(bag, itemKey, silent)
-	-- check if this bag may be stacked
-	if not addon.GetSetting('stackContainer'..bag) then return end
-
 	local icon, numSlots = GetBagInfo(bag)
 	for slot = 0, numSlots do
 		local itemLink = GetItemLink(bag, slot, LINK_STYLE_DEFAULT)
@@ -103,7 +100,10 @@ local function CheckRestack(event)
 
 	addon.wipe(positions)
 	for bag = firstBag, lastBag, direction do
-		addon.StackContainer(bag)
+		-- check if this bag may be stacked but still allow manual stacking (/stack or keybind)
+		if addon.GetSetting('stackContainer'..bag) or not event then
+			addon.StackContainer(bag)
+		end
 
 		if not addon.GetSetting('moveTarget'..bag) then
 			-- don't stack from other containers into this one
