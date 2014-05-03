@@ -10,6 +10,7 @@ local guildPositions, isStackingGB = {}, false
 local numFreeSlots = 0
 local currentItemLink, numItemsWithdrawn, numUsedStacks
 
+local dataGuildID
 local function CanStackGuildBank(guildID)
 	local errorMsg
 	if not DoesGuildHavePrivilege(guildID, GUILD_PRIVILEGE_BANK_DEPOSIT) then
@@ -19,6 +20,8 @@ local function CanStackGuildBank(guildID)
 		errorMsg = 'You need to have both withdrawal and deposit permissions to restack the guild bank'
 	elseif not CheckInventorySpaceSilently(2) then
 		errorMsg = 'You need at least 2 empty bag slots to restack the guild bank.'
+	elseif dataGuildID ~= guildID then
+		errorMsg = 'Guild bank data is not yet available.'
 	end
 	return not errorMsg, errorMsg
 end
@@ -197,6 +200,8 @@ addon.bindings[1].visible = function() return ZO_GuildBank:IsHidden() or CanStac
 local em = GetEventManager()
 em:RegisterForEvent(addonName, EVENT_GUILD_BANK_ITEMS_READY, function()
 	local guildID = GetSelectedGuildBankId() -- internal id of selected guild
+	dataGuildID = guildID
+	KEYBIND_STRIP:UpdateKeybindButtonGroup(addon.bindings)
 	if addon.GetSetting('guildbank') and addon.GetSetting('stackContainer'..BAG_GUILDBANK..guildID) then StackGuildBank() end
 end)
 em:RegisterForEvent(addonName, EVENT_GUILD_BANK_ITEM_ADDED, function(eventID) DepositGuildBankItems(eventID) end)
@@ -217,3 +222,12 @@ end)
 em:RegisterForEvent(addonName, EVENT_GUILD_BANK_SELECTED, function(self, guildID)
 	KEYBIND_STRIP:UpdateKeybindButtonGroup(addon.bindings)
 end)
+
+local function UpdateKeybindButtons(self, hidden)
+	if hidden then
+		KEYBIND_STRIP:RemoveKeybindButtonGroup(addon.bindings)
+	else
+		KEYBIND_STRIP:AddKeybindButtonGroup(addon.bindings)
+	end
+end
+ZO_PreHook(ZO_GuildBank, 'SetHidden', UpdateKeybindButtons)
