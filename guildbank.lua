@@ -4,7 +4,7 @@ local L = addon.L
 
 -- GLOBALS: LINK_STYLE_DEFAULT, BAG_GUILDBANK, BAG_BACKPACK, SI_TOOLTIP_ITEM_NAME, GUILD_PRIVILEGE_BANK_DEPOSIT, KEYBIND_STRIP, ZO_GuildBank
 -- GLOBALS: GetItemLink, GetNextGuildBankSlotId, GetSlotStackSize, CheckInventorySpaceSilently, GetBagInfo, ZO_LinkHandler_ParseLink, DoesPlayerHaveGuildPermission, DoesGuildHavePrivilege, TransferToGuildBank, TransferFromGuildBank, GetSelectedGuildBankId, IsItemConsumable, LocalizeString, GetItemInstanceId
--- GLOBALS: tonumber, table, pairs, ipairs, zo_strformat
+-- GLOBALS: tonumber, table, pairs, ipairs, zo_strformat, type
 
 local guildPositions, isStackingGB = {}, false
 local numFreeSlots = 0
@@ -46,7 +46,7 @@ local function DepositGuildBankItems(eventID)
 				return
 			else
 				-- TODO: split stack
-				-- ZO_StackSplit, ZO_StackSplitSplit, ZO_StackSplitSpinnerDisplay, ZO_Menu
+				-- ZO_StackSplit, ZO_StackSplitSplit, ZO_StackSplitSpinnerDisplay, ZO_Menu, ZO_Menu_ClickItem
 				addon.Print(LocalizeString('<<C:2*1>> was not deposited. Please do so manually.', itemLink, numItemsWithdrawn))
 			end
 		end
@@ -121,17 +121,17 @@ function DoGuildBankStacking(eventID)
 end
 
 local lastGuildID
-local function StackGuildBank()
-	local guildID = GetSelectedGuildBankId() -- internal id of selected guild
-	if lastGuildID == guildID or isStackingGB or not addon.GetSetting('stackContainer'..BAG_GUILDBANK..guildID) then return end
+local function StackGuildBank(guildID)
+	local guildID = type(guildID) == 'number' and guildID or GetSelectedGuildBankId() -- internal id of selected guild
+	if lastGuildID == guildID or isStackingGB then return end
 
-	lastGuildID = guildID
 	local canStackGuildBank, errorMsg = CanStackGuildBank(guildID)
 	if errorMsg then
 		addon.Print(errorMsg)
 		return
 	end
 
+	lastGuildID = guildID
 	isStackingGB = true
 	numFreeSlots = 0
 
@@ -196,7 +196,8 @@ addon.bindings[1].visible = function() return ZO_GuildBank:IsHidden() or CanStac
 
 local em = GetEventManager()
 em:RegisterForEvent(addonName, EVENT_GUILD_BANK_ITEMS_READY, function()
-	if addon.GetSetting('guildbank') then StackGuildBank() end
+	local guildID = GetSelectedGuildBankId() -- internal id of selected guild
+	if addon.GetSetting('guildbank') and addon.GetSetting('stackContainer'..BAG_GUILDBANK..guildID) then StackGuildBank() end
 end)
 em:RegisterForEvent(addonName, EVENT_GUILD_BANK_ITEM_ADDED, function(eventID) DepositGuildBankItems(eventID) end)
 em:RegisterForEvent(addonName, EVENT_GUILD_BANK_ITEM_REMOVED, function(eventID) DoGuildBankStacking(eventID) end)
