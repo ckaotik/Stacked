@@ -30,6 +30,7 @@ local function MoveItem(fromBag, fromSlot, toBag, toSlot, count, silent)
 				template = success and 'Stacked <<C:2*1>> from <<3>> to <<4>>' or 'Failed to stack <<2*1>> from <<3>> to <<4>>'
 			else
 				template = success and 'Stacked <<C:2*1>> in <<4>>' or 'Failed to stack <<2*1>> in <<4>>'
+				count = count + (GetSlotStackSize(toBag, toSlot))
 			end
 		end
 		addon.Print( LocalizeString(template, itemLink, count, GetSlotText(fromBag, fromSlot), GetSlotText(toBag, toSlot)) )
