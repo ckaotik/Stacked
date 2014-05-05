@@ -6,6 +6,9 @@ local L = addon.L
 -- GLOBALS: GetItemLink, GetNextGuildBankSlotId, GetSlotStackSize, CheckInventorySpaceSilently, GetBagInfo, ZO_LinkHandler_ParseLink, DoesPlayerHaveGuildPermission, DoesGuildHavePrivilege, TransferToGuildBank, TransferFromGuildBank, GetSelectedGuildBankId, IsItemConsumable, LocalizeString, GetItemInstanceId
 -- GLOBALS: tonumber, table, pairs, ipairs, zo_strformat, type
 
+-- TODO: when withdrawing fails, make sure to not deposit too many items
+-- TODO: when deposit fails ... items get lost :(
+
 local guildPositions, isStackingGB = {}, false
 local numFreeSlots = 0
 local currentItemLink, numItemsWithdrawn, numUsedStacks
@@ -14,7 +17,7 @@ local dataGuildID
 local function CanStackGuildBank(guildID)
 	local errorMsg
 	if not DoesGuildHavePrivilege(guildID, GUILD_PRIVILEGE_BANK_DEPOSIT) then
-		errorMsg = 'This guild has not enough members to use the guild bank.'
+		errorMsg = 'This guild does not have enough members to use the guild bank.'
 	elseif not DoesPlayerHaveGuildPermission(guildID, 15) -- deposit
 	  or not DoesPlayerHaveGuildPermission(guildID, 16) then -- withdraw
 		errorMsg = 'You need to have both withdrawal and deposit permissions to restack the guild bank'
