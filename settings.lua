@@ -76,7 +76,7 @@ function addon.CreateSettings()
 	local LAM = LibStub('LibAddonMenu-1.0')
 	local panel = LAM:CreateControlPanel(addonName..'Settings', addonName)
 
-	LAM:AddHeader(panel, addonName..'HeaderEvents', addon.L['events'])
+	LAM:AddHeader(panel, addonName..'HeaderEvents', 'Automatically stack on events')
 	LAM:AddCheckbox(panel, addonName..'ToggleTrade',
 		addon.L['tradeSucceeded'], 'Enable stacking after a trade was completed.',
 		function() return GetSetting('trade') end, function(value) SetSetting('trade', value) end)
@@ -91,44 +91,38 @@ function addon.CreateSettings()
 		function() return GetSetting('guildbank') end, function(value) SetSetting('guildbank', value) end)
 
 	local descFormat = 'Enable stacking of items in your %s'
-	LAM:AddHeader(panel, addonName..'HeaderContainers', addon.L['containers'])
+	LAM:AddHeader(panel, addonName..'HeaderContainers', 'Automatically stack containers')
 	local bag = BAG_BACKPACK
 	LAM:AddCheckbox(panel, addonName..'ToggleContainer'..bag,
-		addon.bagNames[bag], descFormat:format(addon.bagNames[bag]),
+		L['BAG_'..bag], descFormat:format(L['BAG_'..bag]),
 		function() return GetSetting('stackContainer'..bag) end, function(value) SetSetting('stackContainer'..bag, value) end
 	)
 	local bag = BAG_BANK
 	LAM:AddCheckbox(panel, addonName..'ToggleContainer'..bag,
-		addon.bagNames[bag], descFormat:format(addon.bagNames[bag]),
+		L['BAG_'..bag], descFormat:format(L['BAG_'..bag]),
 		function() return GetSetting('stackContainer'..bag) end, function(value) SetSetting('stackContainer'..bag, value) end
 	)
 	local bag = BAG_GUILDBANK
 	for i = 1, 5 do
 		LAM:AddCheckbox(panel, addonName..'ToggleContainer'..bag..i,
-			addon.bagNames[bag]..' '..i, descFormat:format(addon.bagNames[bag]..' '..i),
+			L['BAG_'..bag]..' '..i, descFormat:format(L['BAG_'..bag]..' '..i),
 			function() return GetSetting('stackContainer'..bag..i) end, function(value) SetSetting('stackContainer'..bag..i, value) end
 		)
 	end
 
-	LAM:AddHeader(panel, addonName..'HeaderMoveTarget', 'Move to other bag')
-	LAM:AddDescription(panel, addonName..'MoveTargetDesc', 'When multiple locations contain the same item in incomplete stacks, those stacks may be merged together into one location.', nil)
+	LAM:AddHeader(panel, addonName..'HeaderMoveTarget', 'Move partial stacks')
+	LAM:AddDescription(panel, addonName..'MoveTargetDesc', 'When multiple locations contain the same item in incomplete stacks, those stacks may be merged together into one location.\n|cFF0000Make sure not to select contradicting options.|r', nil)
 
-	local descFormat = 'Enable moving partial stacks into your %s.'
-	local bag = BAG_BACKPACK
+	local labelFormat = L['fromAToB']
 	LAM:AddCheckbox(panel, addonName..'ToggleMoveTarget'..BAG_BACKPACK,
-		addon.bagNames[BAG_BACKPACK], descFormat:format(addon.bagNames[BAG_BACKPACK]),
-		function() return GetSetting('moveTarget'..BAG_BACKPACK) end, function(value) SetSetting('moveTarget'..BAG_BACKPACK, value) end,
-		true, ('If enabled make sure to disable %s and %s!'):format(addon.bagNames[BAG_BANK], addon.bagNames[BAG_GUILDBANK])
+		L('fromAToB', L['BAG_'..BAG_BANK], L['BAG_'..BAG_BACKPACK]), nil,
+		function() return GetSetting('moveTarget'..BAG_BACKPACK) end,
+		function(value) SetSetting('moveTarget'..BAG_BACKPACK, value) end
 	)
-	local bag = BAG_BANK
-	LAM:AddCheckbox(panel, addonName..'ToggleMoveTarget'..bag,
-		addon.bagNames[bag], descFormat:format(addon.bagNames[bag]),
-		function() return GetSetting('moveTarget'..bag) end, function(value) SetSetting('moveTarget'..bag, value) end
-	)
-	local bag = BAG_GUILDBANK
-	LAM:AddCheckbox(panel, addonName..'ToggleMoveTarget'..bag,
-		addon.bagNames[bag], descFormat:format(addon.bagNames[bag]),
-		function() return GetSetting('moveTarget'..bag) end, function(value) SetSetting('moveTarget'..bag, value) end
+	LAM:AddCheckbox(panel, addonName..'ToggleMoveTarget'..BAG_BANK,
+		L('fromAToB', L['BAG_'..BAG_BACKPACK], L['BAG_'..BAG_BANK]), nil,
+		function() return GetSetting('moveTarget'..BAG_BANK) end,
+		function(value) SetSetting('moveTarget'..BAG_BANK, value) end
 	)
 
 	LAM:AddHeader(panel, addonName..'HeaderGeneral', GetString(2539))
@@ -145,7 +139,7 @@ function addon.CreateSettings()
 		GetString(152), 'Add items that should not be touched when restacking, one itemID or itemLink per line',
 		true,
 		function() return GetSetting('exclude') end, function(value) SetSetting('exclude', value) end)
-	LAM:AddDescription(panel, addonName..'ExcludeDesc', 'Add a new line with either the item\'s ID or the item\'s link by using "'..GetString(1796)..'" and copying it into this text box.\nDon\'t know which item an id represents? Use "/stacked list" to get clickable links of all excluded items.', nil)
+	LAM:AddDescription(panel, addonName..'ExcludeDesc', 'Add a new line with either the item\'s ID or the item\'s link by using "'..GetString(1796)..'" and copying the link into this text box.\nDon\'t know which item an id represents? Use "/stacked list" to get clickable links of all excluded items.', nil)
 end
 
 addon.slashCommandHelp = (addon.slashCommandHelp or '')

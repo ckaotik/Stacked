@@ -43,7 +43,7 @@ local function DepositGuildBankItems(eventID)
 		local itemLink = GetItemLink(BAG_BACKPACK, slot, LINK_STYLE_DEFAULT)
 		local count = GetSlotStackSize(BAG_BACKPACK, slot)
 		if itemLink == currentItemLink then
-			if count < numItemsWithdrawn or addon.GetSetting('moveTarget'..BAG_GUILDBANK) then
+			if count < numItemsWithdrawn then -- TODO: or addon.GetSetting('moveTarget'..BAG_GUILDBANK)
 				TransferToGuildBank(BAG_BACKPACK, slot)
 				numUsedStacks = numUsedStacks - 1
 				numItemsWithdrawn = numItemsWithdrawn - count
@@ -74,21 +74,31 @@ function DoGuildBankStacking(eventID)
 				if GetSlotStackSize(BAG_GUILDBANK, gBankSlot) == 0 then
 					table.remove(guildPositions[item], i)
 					if #guildPositions[item] < 1 then
-						-- we're done with this item
+						-- we've taken all stacks of item
 						guildPositions[item] = nil
 
 						-- restack in backpack
 						addon.StackContainer(BAG_BACKPACK, item, true)
-						DepositGuildBankItems()
 
-						-- wait for DepositGuildBankItems to call DoGuildBankStacking
-						return
+						-- TODO
+						--[[ if addon.GetSetting('moveTarget'..BAG_BACKPACK) then
+							-- TODO: disabled for now ...
+							-- moved guild bank items into bag, find next item
+							eventID = nil
+							break
+						else --]]
+							DepositGuildBankItems()
+							-- wait for DepositGuildBankItems to call DoGuildBankStacking
+							return
+						-- end
 					else
 						slot = slots[1]
+						break
 					end
-					break
 				end
 			end
+			-- found next stack for this item
+			if slot then break end
 		else
 			-- first item wins
 			slot = slots[1]

@@ -7,7 +7,7 @@ local L = addon.L
 -- GLOBALS: string, pairs, tonumber
 
 local function GetSlotText(bag, slot)
-	local result = addon.bagNames[bag]
+	local result = L['BAG_'..bag]
 	if slot and addon.db.showSlot then
 		result = string.format('%s (Slot %d)', result, slot)
 	end
