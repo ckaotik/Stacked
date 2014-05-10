@@ -25,8 +25,22 @@ function addon.Print(format, ...)
 	end
 end
 
+addon.L = setmetatable({}, {
+	__index = function(self, key)
+		local text = rawget(self, key)
+		return text or key -- and LocalizeString('<<1>>', text)
+	end,
+	__call = function(self, key, ...)
+		local text = rawget(self, key)
+		if not text then return key end
+
+		return LocalizeString(text, ...)
+	end,
+})
+local L = addon.L
+
 addon.bindings = { alignment = KEYBIND_STRIP_ALIGN_LEFT }
-ZO_CreateStringId('SI_BINDING_NAME_STACKED_STACK', 'Stack')
+ZO_CreateStringId('SI_BINDING_NAME_STACKED_STACK', L'Stack')
 
 -- --------------------------------------------------------
 --  Setup
@@ -54,9 +68,7 @@ local function Initialize(eventCode, arg1, ...)
 		['stackContainer'..BAG_GUILDBANK..'5'] = false,
 
 		-- move stacks
-		['moveTarget'..BAG_BACKPACK] = false,
-		['moveTarget'..BAG_BANK] = false,
-		['moveTarget'..BAG_GUILDBANK] = false, -- applies to any GB with stacking allowed
+		['moveTarget'] = L'none',
 
 		-- events
 		trade = true,

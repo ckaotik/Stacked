@@ -7,9 +7,11 @@ local L = addon.L
 -- GLOBALS: string, pairs, tonumber
 
 local function GetSlotText(bag, slot)
-	local result = L['BAG_'..bag]
+	local result = (bag == BAG_BACKPACK and L'backpack')
+		or (bag == BAG_BANK and L'bank')
+		or 'unknown'
 	if slot and addon.db.showSlot then
-		result = string.format('%s (Slot %d)', result, slot)
+		result = L('bag slot number', result, slot)
 	end
 	return result
 end
@@ -24,16 +26,16 @@ local function MoveItem(fromBag, fromSlot, toBag, toSlot, count, silent)
 
 	if addon.db.showMessages and not silent then
 		local itemLink = GetItemLink(fromBag, fromSlot, LINK_STYLE_DEFAULT)
-		local template = success and 'Moved <<C:2*1>> from <<3>> to <<4>>' or 'Failed to move <<2*1>> from <<3>> to <<4>>'
+		local template = success and 'moved item' or 'failed moving item'
 		if fromBag == toBag then
 			if addon.db.showSlot then
-				template = success and 'Stacked <<C:2*1>> from <<3>> to <<4>>' or 'Failed to stack <<2*1>> from <<3>> to <<4>>'
+				template = success and 'stacked item' or 'failed stacking item'
 			else
-				template = success and 'Stacked <<C:2*1>> in <<4>>' or 'Failed to stack <<2*1>> in <<4>>'
+				template = success and 'stacked item in container' or 'failed stacking item in container'
 				count = count + (GetSlotStackSize(toBag, toSlot))
 			end
 		end
-		addon.Print( LocalizeString(template, itemLink, count, GetSlotText(fromBag, fromSlot), GetSlotText(toBag, toSlot)) )
+		addon.Print( L(template, itemLink, count, GetSlotText(fromBag, fromSlot), GetSlotText(toBag, toSlot)) )
 	end
 
 	-- clear the cursor to avoid issues
@@ -91,7 +93,9 @@ local function CheckRestack(event)
 	end
 
 	local firstBag, lastBag, direction = 1, GetMaxBags(), 1
-	if addon.GetSetting('moveTarget'..BAG_BANK) then
+	local moveTarget = addon.GetSetting('moveTarget')
+	if moveTarget == L'bank' then
+		-- if addon.GetSetting('moveTarget'..BAG_BANK) then
 		-- to put items into bank, we need different traversal
 		firstBag = lastBag
 		lastBag = 1
@@ -105,7 +109,9 @@ local function CheckRestack(event)
 			addon.StackContainer(bag)
 		end
 
-		if not addon.GetSetting('moveTarget'..bag) then
+		if (bag == BAG_BACKPACK and moveTarget ~= L'backpack')
+			or (bag == BAG_BANK and moveTarget ~= L'bank') then
+		-- if not addon.GetSetting('moveTarget'..bag) then
 			-- don't stack from other containers into this one
 			for key, position in pairs(positions) do
 				if position.bag == bag then
@@ -117,10 +123,10 @@ local function CheckRestack(event)
 	end
 end
 
-addon.slashCommandHelp = (addon.slashCommandHelp or '') .. '\n  "|cFFFFFF/stack|r" to start stacking manually'
+addon.slashCommandHelp = (addon.slashCommandHelp or '') .. '\n' .. L'/stack'
 SLASH_COMMANDS['/stack'] = CheckRestack
 table.insert(addon.bindings, {
-	name = 'Stack',
+	name = L'Stack',
 	keybind = 'STACKED_STACK',
 	callback = CheckRestack
 })

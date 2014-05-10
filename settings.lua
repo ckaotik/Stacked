@@ -76,86 +76,70 @@ function addon.CreateSettings()
 	local LAM = LibStub('LibAddonMenu-1.0')
 	local panel = LAM:CreateControlPanel(addonName..'Settings', addonName)
 
-	LAM:AddHeader(panel, addonName..'HeaderEvents', 'Automatically stack on events')
-	LAM:AddCheckbox(panel, addonName..'ToggleTrade',
-		addon.L['tradeSucceeded'], 'Enable stacking after a trade was completed.',
-		function() return GetSetting('trade') end, function(value) SetSetting('trade', value) end)
-	LAM:AddCheckbox(panel, addonName..'ToggleMail',
-		addon.L['attachmentsRetrieved'], 'Enable stacking after retrieving mail attachments.',
-		function() return GetSetting('mail') end, function(value) SetSetting('mail', value) end)
-	LAM:AddCheckbox(panel, addonName..'ToggleBank',
-		addon.L['bank'], 'Enable stacking when opening your bank.',
-		function() return GetSetting('bank') end, function(value) SetSetting('bank', value) end)
-	LAM:AddCheckbox(panel, addonName..'ToggleGuildBank',
-		addon.L['guildbank'], 'Enable stacking when opening your guild bank.',
-		function() return GetSetting('guildbank') end, function(value) SetSetting('guildbank', value) end)
+	LAM:AddHeader(panel, addonName..'HeaderGeneral', L'General Options')
+	LAM:AddDropdown(panel, addonName..'MoveTarget',
+		L'merge target', L'merge target description',
+		{L'none', L'backpack', L'bank'},
+		function() return GetSetting('moveTarget') end, function(value) SetSetting('moveTarget', value) end)
+	LAM:AddEditBox(panel, addonName..'Exclude',
+		L'ignore items', L'ignore items description', true,
+		function() return GetSetting('exclude') end, function(value) SetSetting('exclude', value) end,
+		true, L'ignore items info')
+	LAM:AddDescription(panel, addonName..'ExcludeDesc', '|cFFFFB0'..L'ignore items help'..'|r')
 
-	local descFormat = 'Enable stacking of items in your %s'
-	LAM:AddHeader(panel, addonName..'HeaderContainers', 'Automatically stack containers')
-	local bag = BAG_BACKPACK
-	LAM:AddCheckbox(panel, addonName..'ToggleContainer'..bag,
-		L['BAG_'..bag], descFormat:format(L['BAG_'..bag]),
-		function() return GetSetting('stackContainer'..bag) end, function(value) SetSetting('stackContainer'..bag, value) end
-	)
-	local bag = BAG_BANK
-	LAM:AddCheckbox(panel, addonName..'ToggleContainer'..bag,
-		L['BAG_'..bag], descFormat:format(L['BAG_'..bag]),
-		function() return GetSetting('stackContainer'..bag) end, function(value) SetSetting('stackContainer'..bag, value) end
-	)
-	local bag = BAG_GUILDBANK
-	for i = 1, 5 do
-		LAM:AddCheckbox(panel, addonName..'ToggleContainer'..bag..i,
-			L['BAG_'..bag]..' '..i, descFormat:format(L['BAG_'..bag]..' '..i),
-			function() return GetSetting('stackContainer'..bag..i) end, function(value) SetSetting('stackContainer'..bag..i, value) end
-		)
-	end
-
-	LAM:AddHeader(panel, addonName..'HeaderMoveTarget', 'Move partial stacks')
-	LAM:AddDescription(panel, addonName..'MoveTargetDesc', 'When multiple locations contain the same item in incomplete stacks, those stacks may be merged together into one location.\n|cFF0000Make sure not to select contradicting options.|r', nil)
-
-	local labelFormat = L['fromAToB']
-	LAM:AddCheckbox(panel, addonName..'ToggleMoveTarget'..BAG_BACKPACK,
-		L('fromAToB', L['BAG_'..BAG_BANK], L['BAG_'..BAG_BACKPACK]), nil,
-		function() return GetSetting('moveTarget'..BAG_BACKPACK) end,
-		function(value) SetSetting('moveTarget'..BAG_BACKPACK, value) end
-	)
-	LAM:AddCheckbox(panel, addonName..'ToggleMoveTarget'..BAG_BANK,
-		L('fromAToB', L['BAG_'..BAG_BACKPACK], L['BAG_'..BAG_BANK]), nil,
-		function() return GetSetting('moveTarget'..BAG_BANK) end,
-		function(value) SetSetting('moveTarget'..BAG_BANK, value) end
-	)
-
-	LAM:AddHeader(panel, addonName..'HeaderGeneral', GetString(2539))
+	LAM:AddHeader(panel, addonName..'HeaderMessages', L'Messages')
 	LAM:AddCheckbox(panel, addonName..'ToggleMessages',
-		GetString(19), 'Enable chat output when an item has been moved.',
+		L'item moved', L'item moved description',
 		function() return GetSetting('showMessages') end, function(value) SetSetting('showMessages', value) end)
 	LAM:AddCheckbox(panel, addonName..'ToggleSlot',
-		'Output Slot', 'Enable to add which slot was affected to movement messages.',
+		L'slots', L'slots description',
 		function() return GetSetting('showSlot') end, function(value) SetSetting('showSlot', value) end)
 	LAM:AddCheckbox(panel, addonName..'ToggleGBStack',
-		'Output Guild Bank Details', 'Enable to show messages when items are moved for guild bank stacking.',
+		L'guild bank details', L'guild bank details description',
 		function() return GetSetting('showGBStackDetail') end, function(value) SetSetting('showGBStackDetail', value) end)
-	LAM:AddEditBox(panel, addonName..'Exclude',
-		GetString(152), 'Add items that should not be touched when restacking, one itemID or itemLink per line',
-		true,
-		function() return GetSetting('exclude') end, function(value) SetSetting('exclude', value) end)
-	LAM:AddDescription(panel, addonName..'ExcludeDesc', 'Add a new line with either the item\'s ID or the item\'s link by using "'..GetString(1796)..'" and copying the link into this text box.\nDon\'t know which item an id represents? Use "/stacked list" to get clickable links of all excluded items.', nil)
+
+	LAM:AddHeader(panel, addonName..'HeaderStacking', L'Automatic Stacking')
+	LAM:AddDescription(panel, addonName..'EventsDesc', '|cFFFFB0'..L'automatic events'..'|r')
+	LAM:AddCheckbox(panel, addonName..'ToggleTrade',
+		L'tradeSucceeded', nil,
+		function() return GetSetting('trade') end, function(value) SetSetting('trade', value) end)
+	LAM:AddCheckbox(panel, addonName..'ToggleMail',
+		L'attachmentsRetrieved', nil,
+		function() return GetSetting('mail') end, function(value) SetSetting('mail', value) end)
+	LAM:AddCheckbox(panel, addonName..'ToggleBank',
+		L'bank opened', nil,
+		function() return GetSetting('bank') end, function(value) SetSetting('bank', value) end)
+	LAM:AddCheckbox(panel, addonName..'ToggleGuildBank',
+		L'guildbank opened', nil,
+		function() return GetSetting('guildbank') end, function(value) SetSetting('guildbank', value) end)
+
+	LAM:AddDescription(panel, addonName..'ContainersDesc', '|cFFFFB0'..L'automatic containers'..'|r')
+	LAM:AddCheckbox(panel, addonName..'ToggleContainer'..BAG_BACKPACK,
+		L'backpack', nil,
+		function() return GetSetting('stackContainer'..BAG_BACKPACK) end,
+		function(value) SetSetting('stackContainer'..BAG_BACKPACK, value) end)
+	LAM:AddCheckbox(panel, addonName..'ToggleContainer'..BAG_BANK,
+		L'bank', nil,
+		function() return GetSetting('stackContainer'..BAG_BANK) end,
+		function(value) SetSetting('stackContainer'..BAG_BANK, value) end)
+	local bag = BAG_GUILDBANK
+	for i = 1, 5 do
+		LAM:AddCheckbox(panel, addonName..'ToggleContainer'..BAG_GUILDBANK..i,
+			L'guildbank'..' '..i, nil,
+			function() return GetSetting('stackContainer'..BAG_GUILDBANK..i) end,
+			function(value) SetSetting('stackContainer'..BAG_GUILDBANK..i, value) end)
+	end
 end
 
 addon.slashCommandHelp = (addon.slashCommandHelp or '')
-	..'\n  "|cFFFFFF/stacked showMessages|r |cFF8040true|r" to show, |cFF8040false|r to hide movement notices'
-	..'\n  "|cFFFFFF/stacked showSlot|r |cFF8040true|r" to show, |cFF8040false|r to hide slot numbers in movement notices'
-	..'\n  "|cFFFFFF/stacked showGBStackDetail|r |cFF8040true|r" to show, |cFF8040false|r to hide detailed messages when doing guild bank stacking'
-	..'\n  "|cFFFFFF/stacked list|r" to list all items excluded from stacking'
-	..'\n  "|cFFFFFF/stacked exclude|r |cFF80401234|r" to exclude the item with id 1234'
-	..'\n  "|cFFFFFF/stacked exclude|r |cFF8040[Item Link]|r" to exclude the linked item'
-	..'\n  "|cFFFFFF/stacked include|r |cFF80401234|r" to re-include the item with id 1234'
-	..'\n  "|cFFFFFF/stacked include|r |cFF8040[Item Link]|r" to re-include the linked item'
+	..'\n'..L'/stacked list'
+	..'\n'..L'/stacked exclude'
+	..'\n'..L'/stacked include'
 
 function addon.CreateSlashCommands()
 	SLASH_COMMANDS['/stacked'] = function(arg)
 		if arg == '' or arg == 'help' then
-			addon.Print(addonName..' command help:'..addon.slashCommandHelp)
+			addon.Print(L('/help', addonName, addon.slashCommandHelp))
 			return
 		end
 
@@ -169,21 +153,21 @@ function addon.CreateSlashCommands()
 			for itemID, _ in pairs(addon.db.exclude) do
 				list = (list ~= '' and list..', ' or '') .. GetLinkFromID(itemID)
 			end
-			addon.Print('Stacked excludes %s', list ~= '' and list or 'no items')
+			addon.Print('Stacked ignores %s', list ~= '' and list or 'no items')
 		elseif option == 'exclude' then
 			local _, _, _, itemID = ZO_LinkHandler_ParseLink(value)
 			if itemID then value = itemID end
 
 			if not value or value == '' then return end
 			addon.db.exclude[value] = true
-			addon.Print('Stacked now excludes item %s', GetLinkFromID(value))
+			addon.Print('Stacked now ignores item %s', GetLinkFromID(value))
 		elseif option == 'include' then
 			local _, _, _, itemID = ZO_LinkHandler_ParseLink(value)
 			if itemID then value = itemID end
 
 			if not value or value == '' then return end
 			addon.db.exclude[value] = nil
-			addon.Print('Stacked no longer excludes %s', GetLinkFromID(value))
+			addon.Print('Stacked no longer ignores %s', GetLinkFromID(value))
 		end
 	end
 end

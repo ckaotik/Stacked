@@ -10,7 +10,7 @@ libs\LibStub\LibStub.lua
 libs\LibAddonMenu-1.0\LibAddonMenu-1.0.lua
 
 Stacked.lua
-locale.lua
+locale\locale-$(language).lua
 
 containers.lua
 guildbank.lua
