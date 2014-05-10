@@ -66,7 +66,7 @@ function DoGuildBankStacking(eventID)
 	if not isStackingGB then return end
 
 	-- choose an item to restack
-	local slot, isNewItem
+	local slot, newItem
 	for item, slots in pairs(guildPositions) do
 		if eventID or not CheckInventorySpaceSilently(1) then
 			-- find item that was handled before
@@ -102,7 +102,7 @@ function DoGuildBankStacking(eventID)
 		else
 			-- first item wins
 			slot = slots[1]
-			isNewItem = true
+			newItem = item
 			break
 		end
 	end
@@ -110,8 +110,13 @@ function DoGuildBankStacking(eventID)
 	if slot then
 		local itemLink = GetItemLink(BAG_GUILDBANK, slot, LINK_STYLE_DEFAULT)
 		local count, stackSize = GetSlotStackSize(BAG_GUILDBANK, slot)
-		if isNewItem then
-			addon.Print(L('stacking item', itemLink))
+		if newItem then
+			local numStacks, totalCount = #guildPositions[newItem], 0
+			for i, slotID in ipairs(guildPositions[newItem]) do
+				totalCount = totalCount + GetSlotStackSize(BAG_GUILDBANK, slot)
+			end
+
+			addon.Print(L('stacking item', itemLink, numStacks, totalCount))
 			currentItemLink = itemLink
 			numItemsWithdrawn = 0
 			numUsedStacks = 0
@@ -230,6 +235,7 @@ end)
 em:RegisterForEvent(addonName, EVENT_CLOSE_GUILD_BANK, function()
 	isStackingGB = false
 	lastGuildID = nil
+	dataGuildID = nil
 	KEYBIND_STRIP:RemoveKeybindButtonGroup(addon.bindings)
 end)
 em:RegisterForEvent(addonName, EVENT_GUILD_BANK_SELECTED, function(self, guildID)

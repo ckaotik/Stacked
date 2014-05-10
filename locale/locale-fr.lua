@@ -57,12 +57,12 @@ L['failed moving item'] = 'Failed to move <<2*1>> from <<3>> to <<4>>'
 
 -- --------------------------------------------------------
 -- guild bank stacking
-L['stacking item'] = 'Stacking <<1>>...'
+L['stacking item'] = 'Stacking <<2*1>>, currently using <<3*one slot|slots>>.'
 L['stacking item failed'] = 'Stacking <<1>> failed.'
 L['withdrew item'] = 'Withdrew <<2*1>>'
 L['deposit item'] = 'Deposit <<2*1>> back to guild bank...'
 L['deposit item manually'] = '<<2*1>> was not deposited. Please do so manually.'
-L['guild bank stacking completed'] = 'Stacking guild bank completed. Freed <<1>> slot(s).'
+L['guild bank stacking completed'] = 'Stacking guild bank completed. Freed <<1*slot|slots>>.'
 
 -- error messages
 L['not enough members'] = 'This guild does not have enough members to use the guild bank.'
