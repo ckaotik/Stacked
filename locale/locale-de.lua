@@ -57,12 +57,12 @@ L['failed moving item'] = 'Bewegen von <<2*1>> in <<3>> nach <<4>> ist fehlgesch
 
 -- --------------------------------------------------------
 -- guild bank stacking
-L['stacking item'] = 'Stapeln von <<2*1>>, verteilt auf <<3*einen Platz|Plätze>>'
+L['stacking item'] = 'Stapeln von <<2*1>>, verteilt auf <<03*Platz|Plätze>>'
 L['stacking item failed'] = 'Stapeln von <<1>> ist fehlgeschlagen.'
 L['withdrew item'] = '<<2*1>> entnommen'
 L['deposit item'] = 'Einzahlen von <<2*1>> in die Gildenbank...'
 L['deposit item manually'] = '<<2*1>> wurden nicht eingezahlt. Bitte tu dies manuell.'
-L['guild bank stacking completed'] = 'Gildenbank-Stapeln abgeschlossen. <<1*einen Platz|Plätze>> gewonnen.'
+L['guild bank stacking completed'] = 'Gildenbank-Stapeln abgeschlossen. <<01*Platz|Plätze>> gewonnen.'
 
 -- error messages
 L['not enough members'] = 'Diese Gilde hat nicht genügend Mitglieder um die Gildenbank zu nutzen.'

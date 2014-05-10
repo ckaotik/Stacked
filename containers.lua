@@ -44,7 +44,7 @@ end
 
 local positions = {}
 function addon.StackContainer(bag, itemKey, silent)
-	local icon, numSlots = GetBagInfo(bag)
+	local _, numSlots = GetBagInfo(bag)
 	for slot = 0, numSlots do
 		local itemLink = GetItemLink(bag, slot, LINK_STYLE_DEFAULT)
 		local itemID, key
@@ -95,7 +95,6 @@ local function CheckRestack(event)
 	local firstBag, lastBag, direction = 1, GetMaxBags(), 1
 	local moveTarget = addon.GetSetting('moveTarget')
 	if moveTarget == L'bank' then
-		-- if addon.GetSetting('moveTarget'..BAG_BANK) then
 		-- to put items into bank, we need different traversal
 		firstBag = lastBag
 		lastBag = 1
@@ -111,8 +110,6 @@ local function CheckRestack(event)
 
 		if (bag == BAG_BACKPACK and moveTarget ~= L'backpack')
 			or (bag == BAG_BANK and moveTarget ~= L'bank') then
-		-- if not addon.GetSetting('moveTarget'..bag) then
-			-- don't stack from other containers into this one
 			for key, position in pairs(positions) do
 				if position.bag == bag then
 					addon.wipe(positions[key])
