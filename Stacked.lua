@@ -68,7 +68,8 @@ local function Initialize(eventCode, arg1, ...)
 		['stackContainer'..BAG_GUILDBANK..'5'] = false,
 
 		-- move stacks
-		['moveTarget'] = L'none',
+		moveTarget = L'none',
+		moveTargetGB = L'none',
 
 		-- events
 		trade = true,

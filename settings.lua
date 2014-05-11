@@ -81,6 +81,10 @@ function addon.CreateSettings()
 		L'merge target', L'merge target description',
 		{L'none', L'backpack', L'bank'},
 		function() return GetSetting('moveTarget') end, function(value) SetSetting('moveTarget', value) end)
+	LAM:AddDropdown(panel, addonName..'MoveTargetGB',
+		L'merge target', L'merge target description', -- TODO
+		{L'none', L'backpack', L'guildbank'},
+		function() return GetSetting('moveTarget') end, function(value) SetSetting('moveTarget', value) end)
 	LAM:AddEditBox(panel, addonName..'Exclude',
 		L'ignore items', L'ignore items description', true,
 		function() return GetSetting('exclude') end, function(value) SetSetting('exclude', value) end,

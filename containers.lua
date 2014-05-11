@@ -15,6 +15,7 @@ local function GetSlotText(bag, slot)
 	end
 	return result
 end
+addon.GetSlotText = GetSlotText
 
 local function MoveItem(fromBag, fromSlot, toBag, toSlot, count, silent)
 	count = count or GetSlotStackSize(fromBag, fromSlot)

@@ -9,6 +9,7 @@ local L = addon.L
 -- TODO: when withdrawing fails, make sure to not deposit too many items
 -- TODO: when deposit fails ... items get lost :(
 
+local bagPositions, waitForWithdrawal = {}, nil
 local guildPositions, isStackingGB = {}, false
 local numFreeSlots = 0
 local currentItemLink, numItemsWithdrawn, numUsedStacks
@@ -23,7 +24,7 @@ local function CanStackGuildBank(guildID)
 		errorMsg = L'insufficient permissions'
 	elseif not CheckInventorySpaceSilently(2) then
 		errorMsg = L'inventory full'
-	elseif dataGuildID ~= guildID then
+	elseif not dataGuildID or dataGuildID ~= guildID then
 		errorMsg = L'not available'
 	end
 	return not errorMsg, errorMsg
@@ -33,6 +34,7 @@ local function DoGuildBankStacking() end -- forward declaration
 
 local function DepositGuildBankItems(eventID)
 	if not currentItemLink then return end
+	local moveTarget = addon.GetSetting('moveTargetGB')
 
 	if not eventID and addon.GetSetting('showGBStackDetail') then
 		addon.Print(L('deposit item', currentItemLink, numItemsWithdrawn))
@@ -43,7 +45,7 @@ local function DepositGuildBankItems(eventID)
 		local itemLink = GetItemLink(BAG_BACKPACK, slot, LINK_STYLE_DEFAULT)
 		local count = GetSlotStackSize(BAG_BACKPACK, slot)
 		if itemLink == currentItemLink then
-			if count < numItemsWithdrawn then -- TODO: or addon.GetSetting('moveTarget'..BAG_GUILDBANK)
+			if count < numItemsWithdrawn or moveTarget == L'guildbank' then
 				TransferToGuildBank(BAG_BACKPACK, slot)
 				numUsedStacks = numUsedStacks - 1
 				numItemsWithdrawn = numItemsWithdrawn - count
@@ -58,12 +60,27 @@ local function DepositGuildBankItems(eventID)
 		end
 	end
 
+	-- print info about our own moved items
+	if numItemsWithdrawn < 0 then
+		addon.Print( L('moved item', currentItemLink, -1*numItemsWithdrawn,
+			addon.GetSlotText(BAG_BACKPACK), addon.GetSlotText(BAG_GUILDBANK)) )
+	end
+
 	numFreeSlots = numFreeSlots + numUsedStacks
 	currentItemLink = nil
 	DoGuildBankStacking()
 end
 function DoGuildBankStacking(eventID)
 	if not isStackingGB then return end
+	if waitForWithdrawal then
+		-- this was caused by move-to-bags setting
+		waitForWithdrawal = waitForWithdrawal - 1
+		if waitForWithdrawal == 0 then
+			waitForWithdrawal = nil
+			currentItemLink = nil
+		end
+		return
+	end
 
 	-- choose an item to restack
 	local slot, newItem
@@ -80,17 +97,9 @@ function DoGuildBankStacking(eventID)
 						-- restack in backpack
 						addon.StackContainer(BAG_BACKPACK, item, true)
 
-						-- TODO
-						--[[ if addon.GetSetting('moveTarget'..BAG_BACKPACK) then
-							-- TODO: disabled for now ...
-							-- moved guild bank items into bag, find next item
-							eventID = nil
-							break
-						else --]]
-							DepositGuildBankItems()
-							-- wait for DepositGuildBankItems to call DoGuildBankStacking
-							return
-						-- end
+						DepositGuildBankItems()
+						-- wait for it to call DoGuildBankStacking again
+						return
 					else
 						slot = slots[1]
 						break
@@ -156,6 +165,33 @@ local function StackGuildBank(guildID)
 	isStackingGB = true
 	numFreeSlots = 0
 
+	-- scan inventory
+	addon.wipe(bagPositions)
+	local moveTarget = addon.GetSetting('moveTargetGB')
+	if moveTarget ~= L'none' then
+		local _, numSlots = GetBagInfo(BAG_BACKPACK)
+		for slot = 0, numSlots do
+			local itemLink = GetItemLink(BAG_BACKPACK, slot, LINK_STYLE_DEFAULT)
+			local itemID
+			if itemLink ~= '' then
+				_, _, _, itemID = ZO_LinkHandler_ParseLink(itemLink)
+				itemID = itemID and tonumber(itemID)
+			end
+
+			-- don't touch if slot is empty or item is excluded
+			if itemID and not addon.db.exclude[itemID] then
+				local count, stackSize = GetSlotStackSize(BAG_BACKPACK, slot)
+				if count < stackSize then
+					local key = GetItemInstanceId(BAG_BACKPACK, slot)
+					if not bagPositions[key] then
+						bagPositions[key] = {}
+					end
+					table.insert(bagPositions[key], slot)
+				end
+			end
+		end
+	end
+
 	-- scan guild bank
 	addon.wipe(guildPositions)
 	local slot = nil
@@ -174,7 +210,14 @@ local function StackGuildBank(guildID)
 		-- don't touch if slot is empty or item is excluded
 		if itemID and not addon.db.exclude[itemID] then
 			local count, stackSize = GetSlotStackSize(BAG_GUILDBANK, slot)
-			if count < stackSize then
+			if moveTarget == L'backpack' and bagPositions[key] then
+				waitForWithdrawal = (waitForWithdrawal or 0) + 1
+				currentItemLink = L'guildbank items' -- this allows for informational error messages
+				TransferFromGuildBank(slot)
+				-- TODO: this message is somewhat premature...
+				addon.Print( L('moved item', itemLink, count,
+					addon.GetSlotText(BAG_GUILDBANK, slot), addon.GetSlotText(BAG_BACKPACK)) )
+			elseif count < stackSize then
 				-- store location
 				if not guildPositions[key] then
 					guildPositions[key] = {}
@@ -184,9 +227,9 @@ local function StackGuildBank(guildID)
 		end
 	end
 
-	-- remove items with only one stack
+	-- remove items with only one stack and that should not be merged
 	for key, slots in pairs(guildPositions) do
-		if #slots < 2 then
+		if #slots < 2 and not (moveTarget == L'guildbank' and bagPositions[key]) then
 			addon.wipe(slots)
 			guildPositions[key] = nil
 		end
