@@ -57,8 +57,9 @@ L['failed moving item'] = 'Bewegen von <<2*1>> in <<3>> nach <<4>> ist fehlgesch
 
 -- --------------------------------------------------------
 -- guild bank stacking
-L['stacking item'] = 'Stapeln von <<2*1>>, verteilt auf <<03*Platz|Plätze>>'
-L['stacking item failed'] = 'Stapeln von <<1>> ist fehlgeschlagen.'
+L['failed moving guildbank item'] = 'Bewegen von Gegenstand zwischen Tasche und Gildenbank ist fehlgeschlagen.'
+L['stacking guildbank item'] = 'Stapeln von <<2*1>>, verteilt auf <<03*Platz|Plätze>>'
+L['failed stacking guildbank item'] = 'Stapeln von <<1>> ist fehlgeschlagen.'
 L['withdrew item'] = '<<2*1>> entnommen'
 L['deposit item'] = 'Einzahlen von <<2*1>> in die Gildenbank...'
 L['deposit item manually'] = '<<2*1>> wurden nicht eingezahlt. Bitte tu dies manuell.'
