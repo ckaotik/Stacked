@@ -57,6 +57,7 @@ local function SetSetting(setting, value)
 			if not isNumber(k) then
 				_, _, _, k = ZO_LinkHandler_ParseLink(k)
 			end
+			k = tonumber(k)
 
 			if v == nil or v == '' then v = true
 			elseif v == 'true' then v = true
@@ -84,7 +85,7 @@ function addon.CreateSettings()
 	LAM:AddDropdown(panel, addonName..'MoveTargetGB',
 		L'merge guildbank target', L'merge guildbank target description',
 		{L'none', L'backpack', L'guildbank'},
-		function() return GetSetting('moveTarget') end, function(value) SetSetting('moveTarget', value) end)
+		function() return GetSetting('moveTargetGB') end, function(value) SetSetting('moveTargetGB', value) end)
 	LAM:AddEditBox(panel, addonName..'Exclude',
 		L'ignore items', L'ignore items description', true,
 		function() return GetSetting('exclude') end, function(value) SetSetting('exclude', value) end,
