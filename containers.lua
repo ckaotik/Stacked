@@ -44,7 +44,7 @@ local function MoveItem(fromBag, fromSlot, toBag, toSlot, count, silent)
 end
 
 local positions = {}
-function addon.StackContainer(bag, itemKey, silent)
+function addon.StackContainer(bag, itemKey, silent, excludeSlots)
 	local _, numSlots = GetBagInfo(bag)
 	for slot = 0, numSlots do
 		local itemLink = GetItemLink(bag, slot, LINK_STYLE_DEFAULT)
@@ -55,8 +55,9 @@ function addon.StackContainer(bag, itemKey, silent)
 			key = GetItemInstanceId(bag, slot)
 		end
 
-		-- don't touch if slot is empty or item is excluded
-		if itemID and not addon.db.exclude[itemID] then
+		-- don't touch if slot is empty or item or slot is excluded
+		if itemID and not addon.db.exclude[itemID]
+			and not (type(excludeSlots) == 'table' and addon.Find(excludeSlots, slot)) then
 			local count, stackSize = GetSlotStackSize(bag, slot)
 			local total = count
 			if itemLink and count < stackSize then

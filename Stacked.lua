@@ -15,6 +15,14 @@ function addon.wipe(object)
 	return object
 end
 
+function addon.Find(tab, value)
+	for k, v in pairs(tab) do
+		if v == value then
+			return true
+		end
+	end
+end
+
 function addon.Print(format, ...)
 	if type(info) == 'function' then
 		info(format, ...)
@@ -52,8 +60,8 @@ local function Initialize(eventCode, arg1, ...)
 	addon.db = ZO_SavedVars:New(addonName..'DB', 3, nil, {
 		-- default settings
 		showMessages = true,
-		showSlot = true,
-		showGBStackDetail = true,
+		showSlot = false,
+		showGBStackDetail = false,
 		exclude = {
 			[30357] = true, -- lockpicks
 		},

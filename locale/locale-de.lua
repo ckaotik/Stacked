@@ -59,13 +59,14 @@ L['failed moving item'] = 'Bewegen von <<2*1>> in <<3>> nach <<4>> ist fehlgesch
 
 -- --------------------------------------------------------
 -- guild bank stacking
-L['failed moving guildbank item'] = 'Bewegen von Gegenstand zwischen Tasche und Gildenbank ist fehlgeschlagen.'
-L['stacking guildbank item'] = 'Stapeln von <<2*1>>, verteilt auf <<03*Platz|Plätze>>'
-L['failed stacking guildbank item'] = 'Stapeln von <<1>> ist fehlgeschlagen.'
-L['withdrew item'] = '<<2*1>> entnommen'
-L['deposit item'] = 'Einzahlen von <<2*1>> in die Gildenbank...'
-L['deposit item manually'] = '<<2*1>> wurden nicht eingezahlt. Bitte tu dies manuell.'
-L['guild bank stacking completed'] = 'Gildenbank-Stapeln abgeschlossen. <<01*Platz|Plätze>> gewonnen.'
+L['failed moving guildbank item'] = 'Bewegen von Gegenstand zwischen Tasche und Gildenbank ist fehlgeschlagen: <<1>>.'
+L['stacking guildbank item'] = 'Stapeln von <<2*1>>, verteilt auf <<03*Platz^m||Plätze^p>>'
+L['failed stacking guildbank item'] = 'Stapeln von <<1>> ist fehlgeschlagen: <<2>>.'
+L['withdraw item'] = '<<2*1>> entnehmen'
+L['deposit item'] = '<<2*1>> einzahlen'
+L['guild bank state 0'] = 'Gildenbank-Stapeln abgeschlossen. <<01*Platz^m||Plätze^p>> gewonnen.'
+L['guild bank state 2'] = 'Bewege Gegenstände von <<1>> nach <<2>>.'
+L['guild bank state 3'] = 'Stapeln der Gegenstände der Gildenbank gestartet.'
 
 -- error messages
 L['not enough members'] = 'Diese Gilde hat nicht genügend Mitglieder um die Gildenbank zu nutzen.'
