@@ -17,6 +17,7 @@ local logs = {
 
 local numFreedSlots = 0
 local currentItemLink, numItemsWithdrawn, numUsedStacks
+local dataGuildID, lastGuildID
 local emptyTable = {}
 
 local function Reset()
@@ -78,7 +79,6 @@ local function UpdateProgress(itemLink, template, ...)
 	progress:GetNamedChild('Name'):SetText(L(template, itemLink, ...))
 end
 
-local dataGuildID, lastGuildID
 local function CanStackGuildBank(guildID)
 	local errorMsg
 	if not DoesGuildHavePrivilege(guildID, GUILD_PRIVILEGE_BANK_DEPOSIT) then
@@ -498,13 +498,14 @@ em:RegisterForEvent(addonName, EVENT_GUILD_BANK_ITEM_REMOVED, function(eventID, 
 		end
 	end
 end)
-em:RegisterForEvent(addonName, EVENT_GUILD_BANK_TRANSFER_ERROR, function(evendID, error)
+em:RegisterForEvent(addonName, EVENT_GUILD_BANK_TRANSFER_ERROR, function(evendID, errorMsg)
+	if errorMsg then errorMsg = GetString(_G['SI_GLOBALERRORCODE'..errorMsg]) end
 	if state == STATE_STACKING then
-		addon.Print(L('failed stacking guildbank item', currentItemLink, error))
+		addon.Print(L('failed stacking guildbank item', currentItemLink, errorMsg))
 		currentItemLink = nil
 		DoGuildBankStacking()
 	elseif state == STATE_MOVING then
-		addon.Print(L'failed moving guildbank item', error)
+		addon.Print(L'failed moving guildbank item', errorMsg)
 		Reset()
 		StackGuildBank()
 	end

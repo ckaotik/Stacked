@@ -9,6 +9,7 @@ local L = addon.L
 local function GetSlotText(bag, slot)
 	local result = (bag == BAG_BACKPACK and L'backpack')
 		or (bag == BAG_BANK and L'bank')
+		or (bag == BAG_GUILDBANK and L'guildbank')
 		or 'unknown'
 	if slot and addon.db.showSlot then
 		result = L('bag slot number', result, slot)
