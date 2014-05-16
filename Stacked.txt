@@ -4,7 +4,7 @@
 ## SavedVariables: StackedDB
 
 ## APIVersion: 100003
-## Version: 1.2
+## Version: 1.3
 
 libs\LibStub\LibStub.lua
 libs\LibAddonMenu-1.0\LibAddonMenu-1.0.lua
@@ -13,7 +13,7 @@ Stacked.lua
 locale\locale-$(language).lua
 
 containers.lua
-# guildbank.lua
+guildbank.lua
 
 settings.lua
 bindings.xml

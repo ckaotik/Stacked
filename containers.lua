@@ -124,28 +124,35 @@ local function CheckRestack(event)
 	end
 end
 
+-- Events
+-----------------------------------------------------------
+local em = GetEventManager()
+em:RegisterForEvent(addonName, EVENT_TRADE_SUCCEEDED, function() CheckRestack('EVENT_TRADE_SUCCEEDED') end)
+em:RegisterForEvent(addonName, EVENT_MAIL_TAKE_ATTACHED_ITEM_SUCCESS, function() CheckRestack('EVENT_MAIL_TAKE_ATTACHED_ITEM_SUCCESS') end)
+em:RegisterForEvent(addonName, EVENT_OPEN_BANK, function() CheckRestack('EVENT_OPEN_BANK') end)
+
+-- Keybindings
+-----------------------------------------------------------
 addon.slashCommandHelp = (addon.slashCommandHelp or '') .. '\n' .. L'/stack'
 SLASH_COMMANDS['/stack'] = CheckRestack
 table.insert(addon.bindings, {
 	name = L'Stack',
 	keybind = 'STACKED_STACK',
 	callback = CheckRestack,
-	-- visible = function()
-	-- 	return not ZO_PlayerBankBackpackContents:IsHidden() or not ZO_PlayerInventoryBackpackContents:IsHidden()
-	-- end,
+	visible = function()
+		return not ZO_PlayerBank:IsHidden() or not ZO_PlayerInventory:IsHidden()
+	end,
 })
+-- add keybinds always since inventory does not trigger an event
+KEYBIND_STRIP:AddKeybindButtonGroup(addon.bindings)
 
-local em = GetEventManager()
-em:RegisterForEvent(addonName, EVENT_TRADE_SUCCEEDED, function() CheckRestack('EVENT_TRADE_SUCCEEDED') end)
-em:RegisterForEvent(addonName, EVENT_MAIL_TAKE_ATTACHED_ITEM_SUCCESS, function() CheckRestack('EVENT_MAIL_TAKE_ATTACHED_ITEM_SUCCESS') end)
-em:RegisterForEvent(addonName, EVENT_OPEN_BANK, function() CheckRestack('EVENT_OPEN_BANK') end)
-
-local function UpdateKeybindButtons(self, hidden)
-	if hidden then
-		KEYBIND_STRIP:RemoveKeybindButtonGroup(addon.bindings)
-	else
-		KEYBIND_STRIP:AddKeybindButtonGroup(addon.bindings)
-	end
+local inventory_SetHidden = ZO_PlayerInventory.SetHidden
+ZO_PlayerInventory.SetHidden = function(...)
+	inventory_SetHidden(...)
+	KEYBIND_STRIP:UpdateKeybindButtonGroup(addon.bindings)
 end
-ZO_PreHook(ZO_PlayerInventory, 'SetHidden', UpdateKeybindButtons)
-ZO_PreHook(ZO_PlayerBank, 'SetHidden', UpdateKeybindButtons)
+local bank_SetHidden = ZO_PlayerBank.SetHidden
+ZO_PlayerBank.SetHidden = function(...)
+	bank_SetHidden(...)
+	KEYBIND_STRIP:UpdateKeybindButtonGroup(addon.bindings)
+end

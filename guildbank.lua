@@ -122,14 +122,16 @@ local function SetState(stateConstant, ...)
 	local progress = ZO_GuildBank:GetNamedChild('StackedProgress') or InitializeProgressFrame(ZO_GuildBank)
 	if state == STATE_STACKING then
 		progress:SetHidden(false)
-		progress:GetNamedChild('Action'):SetText('Stacking')
+		progress:GetNamedChild('Action'):SetText(L'Stacking')
 	elseif state == STATE_MOVING then
 		progress:SetHidden(false)
-		progress:GetNamedChild('Action'):SetText('Moving')
+		progress:GetNamedChild('Action'):SetText(L'Moving')
 	elseif state == STATE_IDLE then
 		progress:SetHidden(true)
 		addon.Print(L('guild bank state '..stateConstant, ...))
 	end
+
+	KEYBIND_STRIP:UpdateKeybindButtonGroup(addon.bindings)
 end
 
 local function DoGuildBankStacking() end -- forward declaration
@@ -302,7 +304,7 @@ local function StackGuildBank(guildID)
 			-- have item in bags, pull from guild bank
 			local capacity = 0
 			for _, slot in pairs(bagPositions[key] or emptyTable) do
-				-- TODO: this will use up to the same numer of stacks if backpack is untidy
+				-- TODO: this will still use up to the same number of stacks if backpack is untidy
 				local count, stackSize = GetSlotStackSize(BAG_BACKPACK, slot)
 				capacity = capacity + (stackSize - count)
 			end
@@ -373,41 +375,14 @@ local function StackGuildBank(guildID)
 	end
 end
 
+-- Slash Commands
+-----------------------------------------------------------
 addon.slashCommandHelp = (addon.slashCommandHelp or '') .. '\n' .. L'/stackgb'
 SLASH_COMMANDS['/stackgb'] = StackGuildBank
 
--- adjust keybinds since we use one binding for both, container and guld bank stacking
-if not addon.bindings[1] then
-	table.insert(addon.bindings, {
-		name = L'Stack',
-		keybind = 'STACKED_STACK',
-	})
-end
--- TODO: FIXME: allow inventory stacking in gb inventory view, gb stacking in gb view
-local callback = addon.bindings[1].callback
-addon.bindings[1].callback = function()
-	if not ZO_PlayerBankBackpackContents:IsHidden() then
-		StackGuildBank()
-	elseif callback then
-		callback()
-	end
-end
-local visible = addon.bindings[1].visible
-addon.bindings[1].visible = function()
-	if not ZO_PlayerBankBackpackContents:IsHidden() and CanStackGuildBank(GetSelectedGuildBankId()) then
-		return true
-	elseif visible then
-		return visible()
-	end
-end
-
+-- Events
+-----------------------------------------------------------
 local em = GetEventManager()
-em:RegisterForEvent(addonName, EVENT_GUILD_BANK_ITEMS_READY, function()
-	local guildID = GetSelectedGuildBankId() -- internal id of selected guild
-	dataGuildID = guildID
-	KEYBIND_STRIP:UpdateKeybindButtonGroup(addon.bindings)
-	if addon.GetSetting('guildbank') and addon.GetSetting('stackContainer'..BAG_GUILDBANK..guildID) then StackGuildBank() end
-end)
 em:RegisterForEvent(addonName, EVENT_GUILD_BANK_ITEM_ADDED, function(eventID, slot)
 	if state == STATE_IDLE then return end
 
@@ -511,22 +486,57 @@ em:RegisterForEvent(addonName, EVENT_GUILD_BANK_TRANSFER_ERROR, function(evendID
 		StackGuildBank()
 	end
 end)
-em:RegisterForEvent(addonName, EVENT_OPEN_GUILD_BANK, function()
-	KEYBIND_STRIP:AddKeybindButtonGroup(addon.bindings)
+em:RegisterForEvent(addonName, EVENT_GUILD_BANK_ITEMS_READY, function()
+	local guildID = GetSelectedGuildBankId() -- internal id of selected guild
+	dataGuildID = guildID
+	KEYBIND_STRIP:UpdateKeybindButtonGroup(addon.bindings)
+	if addon.GetSetting('guildbank') and addon.GetSetting('stackContainer'..BAG_GUILDBANK..guildID) then StackGuildBank() end
 end)
-em:RegisterForEvent(addonName, EVENT_CLOSE_GUILD_BANK, function()
-	Reset()
-	KEYBIND_STRIP:RemoveKeybindButtonGroup(addon.bindings)
-end)
+
+-- Keybindings
+-----------------------------------------------------------
+-- adjust keybinds since we use one binding for both, container and guld bank stacking
+if not addon.bindings[1] then
+	table.insert(addon.bindings, {
+		name = L'Stack',
+		keybind = 'STACKED_STACK',
+		callback = StackGuildBank,
+	})
+end
+local binding = addon.bindings[1]
+
+local callback = binding.callback
+binding.callback = function()
+	if not ZO_GuildBank:IsHidden() then
+		StackGuildBank()
+	elseif callback then
+		callback()
+	end
+end
+local visible = binding.visible
+binding.visible = function()
+	if not ZO_GuildBank:IsHidden() and CanStackGuildBank(GetSelectedGuildBankId()) then
+		return true
+	elseif visible then
+		return visible()
+	end
+end
+local enabled = binding.enabled
+binding.enabled = function(...)
+	if not ZO_GuildBank:IsHidden() then
+		return state == STATE_IDLE -- and CanStackGuildBank(GetSelectedGuildBankId())
+	elseif enabled then
+		return enabled(...)
+	else
+		return true
+	end
+end
+
+local guildbank_SetHidden = ZO_GuildBank.SetHidden
+ZO_GuildBank.SetHidden = function(self, hidden)
+	guildbank_SetHidden(self, hidden)
+	KEYBIND_STRIP:UpdateKeybindButtonGroup(addon.bindings)
+end
 em:RegisterForEvent(addonName, EVENT_GUILD_BANK_SELECTED, function(self, guildID)
 	KEYBIND_STRIP:UpdateKeybindButtonGroup(addon.bindings)
 end)
-
-local function UpdateKeybindButtons(self, hidden)
-	if hidden then
-		KEYBIND_STRIP:RemoveKeybindButtonGroup(addon.bindings)
-	else
-		KEYBIND_STRIP:AddKeybindButtonGroup(addon.bindings)
-	end
-end
-ZO_PreHook(ZO_GuildBank, 'SetHidden', UpdateKeybindButtons)

@@ -82,10 +82,10 @@ function addon.CreateSettings()
 		L'merge target', L'merge target description',
 		{L'none', L'backpack', L'bank'},
 		function() return GetSetting('moveTarget') end, function(value) SetSetting('moveTarget', value) end)
-	-- LAM:AddDropdown(panel, addonName..'MoveTargetGB',
-	-- 	L'merge guildbank target', L'merge guildbank target description',
-	-- 	{L'none', L'backpack', L'guildbank'},
-	-- 	function() return GetSetting('moveTargetGB') end, function(value) SetSetting('moveTargetGB', value) end)
+	LAM:AddDropdown(panel, addonName..'MoveTargetGB',
+		L'merge guildbank target', L'merge guildbank target description',
+		{L'none', L'backpack', L'guildbank'},
+		function() return GetSetting('moveTargetGB') end, function(value) SetSetting('moveTargetGB', value) end)
 	LAM:AddEditBox(panel, addonName..'Exclude',
 		L'ignore items', L'ignore items description', true,
 		function() return GetSetting('exclude') end, function(value) SetSetting('exclude', value) end,
@@ -99,9 +99,9 @@ function addon.CreateSettings()
 	LAM:AddCheckbox(panel, addonName..'ToggleSlot',
 		L'slots', L'slots description',
 		function() return GetSetting('showSlot') end, function(value) SetSetting('showSlot', value) end)
-	-- LAM:AddCheckbox(panel, addonName..'ToggleGBStack',
-	-- 	L'guild bank details', L'guild bank details description',
-	-- 	function() return GetSetting('showGBStackDetail') end, function(value) SetSetting('showGBStackDetail', value) end)
+	LAM:AddCheckbox(panel, addonName..'ToggleGBStack',
+		L'guild bank details', L'guild bank details description',
+		function() return GetSetting('showGBStackDetail') end, function(value) SetSetting('showGBStackDetail', value) end)
 
 	LAM:AddHeader(panel, addonName..'HeaderStacking', L'Automatic Stacking')
 	LAM:AddDescription(panel, addonName..'EventsDesc', '|cFFFFB0'..L'automatic events'..'|r')
@@ -114,9 +114,9 @@ function addon.CreateSettings()
 	LAM:AddCheckbox(panel, addonName..'ToggleBank',
 		L'bank opened', nil,
 		function() return GetSetting('bank') end, function(value) SetSetting('bank', value) end)
-	-- LAM:AddCheckbox(panel, addonName..'ToggleGuildBank',
-	-- 	L'guildbank opened', nil,
-	-- 	function() return GetSetting('guildbank') end, function(value) SetSetting('guildbank', value) end)
+	LAM:AddCheckbox(panel, addonName..'ToggleGuildBank',
+		L'guildbank opened', nil,
+		function() return GetSetting('guildbank') end, function(value) SetSetting('guildbank', value) end)
 
 	LAM:AddDescription(panel, addonName..'ContainersDesc', '|cFFFFB0'..L'automatic containers'..'|r')
 	LAM:AddCheckbox(panel, addonName..'ToggleContainer'..BAG_BACKPACK,
@@ -127,13 +127,13 @@ function addon.CreateSettings()
 		L'bank', nil,
 		function() return GetSetting('stackContainer'..BAG_BANK) end,
 		function(value) SetSetting('stackContainer'..BAG_BANK, value) end)
-	-- local bag = BAG_GUILDBANK
-	-- for i = 1, 5 do
-	-- 	LAM:AddCheckbox(panel, addonName..'ToggleContainer'..BAG_GUILDBANK..i,
-	-- 		L'guildbank'..' '..i, nil,
-	-- 		function() return GetSetting('stackContainer'..BAG_GUILDBANK..i) end,
-	-- 		function(value) SetSetting('stackContainer'..BAG_GUILDBANK..i, value) end)
-	-- end
+	local bag = BAG_GUILDBANK
+	for i = 1, 5 do
+		LAM:AddCheckbox(panel, addonName..'ToggleContainer'..BAG_GUILDBANK..i,
+			L'guildbank'..' '..i, nil,
+			function() return GetSetting('stackContainer'..BAG_GUILDBANK..i) end,
+			function(value) SetSetting('stackContainer'..BAG_GUILDBANK..i, value) end)
+	end
 end
 
 addon.slashCommandHelp = (addon.slashCommandHelp or '')
