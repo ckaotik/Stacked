@@ -35,6 +35,7 @@ local function MoveItem(fromBag, fromSlot, toBag, toSlot, count, silent)
 			else
 				template = success and 'stacked item in container' or 'failed stacking item in container'
 				count = count + (GetSlotStackSize(toBag, toSlot))
+				-- TODO: FIXME: prints weird numbers
 			end
 		end
 		addon.Print( L(template, itemLink, count, GetSlotText(fromBag, fromSlot), GetSlotText(toBag, toSlot)) )
@@ -128,7 +129,10 @@ SLASH_COMMANDS['/stack'] = CheckRestack
 table.insert(addon.bindings, {
 	name = L'Stack',
 	keybind = 'STACKED_STACK',
-	callback = CheckRestack
+	callback = CheckRestack,
+	-- visible = function()
+	-- 	return not ZO_PlayerBankBackpackContents:IsHidden() or not ZO_PlayerInventoryBackpackContents:IsHidden()
+	-- end,
 })
 
 local em = GetEventManager()

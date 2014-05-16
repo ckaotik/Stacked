@@ -383,9 +383,10 @@ if not addon.bindings[1] then
 		keybind = 'STACKED_STACK',
 	})
 end
+-- TODO: FIXME: allow inventory stacking in gb inventory view, gb stacking in gb view
 local callback = addon.bindings[1].callback
 addon.bindings[1].callback = function()
-	if not ZO_GuildBank:IsHidden() then
+	if not ZO_PlayerBankBackpackContents:IsHidden() then
 		StackGuildBank()
 	elseif callback then
 		callback()
@@ -393,7 +394,7 @@ addon.bindings[1].callback = function()
 end
 local visible = addon.bindings[1].visible
 addon.bindings[1].visible = function()
-	if not ZO_GuildBank:IsHidden() and CanStackGuildBank(GetSelectedGuildBankId()) then
+	if not ZO_PlayerBankBackpackContents:IsHidden() and CanStackGuildBank(GetSelectedGuildBankId()) then
 		return true
 	elseif visible then
 		return visible()

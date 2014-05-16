@@ -13,7 +13,7 @@ Stacked.lua
 locale\locale-$(language).lua
 
 containers.lua
-guildbank.lua
+# guildbank.lua
 
 settings.lua
 bindings.xml
