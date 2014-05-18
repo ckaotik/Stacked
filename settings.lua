@@ -163,15 +163,25 @@ function addon.CreateSlashCommands()
 			local _, _, _, itemID = ZO_LinkHandler_ParseLink(value)
 			if itemID then value = itemID end
 
-			if not value or value == '' then return end
+			if not value or value == '' then return
+			elseif isNumber(value) then value = tonumber(value) end
 			addon.db.exclude[value] = true
+
+			local element = _G[addonName..'Exclude']
+			if element then element.edit:SetText( GetSetting('exclude') ) end
+
 			addon.Print('Stacked now ignores item %s', GetLinkFromID(value))
 		elseif option == 'include' then
 			local _, _, _, itemID = ZO_LinkHandler_ParseLink(value)
 			if itemID then value = itemID end
 
-			if not value or value == '' then return end
+			if not value or value == '' then return
+			elseif isNumber(value) then value = tonumber(value) end
 			addon.db.exclude[value] = nil
+
+			local element = _G[addonName..'Exclude']
+			if element then element.edit:SetText( GetSetting('exclude') ) end
+
 			addon.Print('Stacked no longer ignores %s', GetLinkFromID(value))
 		end
 	end

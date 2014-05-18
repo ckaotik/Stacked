@@ -86,6 +86,14 @@ local function Initialize(eventCode, arg1, ...)
 		guildbank = false,
 	})
 
+	-- fix items being indexed by strings instead of numbers
+	for itemID, value in pairs(addon.db.exclude) do
+		if type(itemID) ~= 'number' then
+			addon.db.exclude[ tonumber(itemID) ] = value
+			addon.db.exclude[itemID] = nil
+		end
+	end
+
 	addon.CreateSlashCommands()
 	addon.CreateSettings()
 end
