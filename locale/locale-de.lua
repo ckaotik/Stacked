@@ -10,11 +10,11 @@ L['merge target description'] = 'Wenn ein Gegenstand in mehreren Taschen unvolls
 L['merge guildbank target'] = 'Stapel kombinieren (Gildenbank)'
 L['merge guildbank target description'] = L['merge target description']
 L['none'] = 'Keine'
-L['backpack'] = GetString(2258)
-L['bank'] = GetString(790)
+L['backpack'] = GetString(SI_INVENTORY_MODE_INVENTORY)
+L['bank'] = GetString(SI_GUILDHISTORYCATEGORY2)
 L['guildbank'] = 'Gildenbank'
 
-L['tradeSucceeded'] = GetString(2073):gsub('%.$', '')
+L['tradeSucceeded'] = GetString(SI_TRADE_COMPLETE):gsub('%.$', '')
 L['attachmentsRetrieved'] = 'Briefanhänge entnommen'
 L['bank opened'] = 'Bank geöffnet'
 L['guildbank opened'] = 'Gildenbank geöffnet'
@@ -22,7 +22,7 @@ L['guildbank opened'] = 'Gildenbank geöffnet'
 L['ignore items'] = 'Gegenstände ignorieren'
 L['ignore items description'] = 'Gegenstände auf deiner Ignorieren-Liste werden nicht von Stacked betrachtet.'
 L['ignore items info'] = 'Nutze "|cFFFFFF/stacked list|r" um eine klickbare Liste aller ignorierten Gegenstände auszugeben. So kannst du leicht deren Namen herausfinden!'
-L['ignore items help'] = 'Eine Zeile pro Gegenstand mit entweder der Gegenstands-ID oder dem Link (nutze die Option "|cFFFFFF'..GetString(1796)..'|r|cFFFFB0" und kopiere den Chat-Link in dieses Textfeld).'
+L['ignore items help'] = 'Eine Zeile pro Gegenstand mit entweder der Gegenstands-ID oder dem Link (nutze die Option "|cFFFFFF'..GetString(SI_ITEM_ACTION_LINK_TO_CHAT)..'|r|cFFFFB0" und kopiere den Chat-Link in dieses Textfeld).'
 
 L['Messages'] = 'Nachrichten'
 L['item moved'] = 'Gegenstand wurde bewegt'

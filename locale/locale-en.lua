@@ -10,11 +10,11 @@ L['merge target description'] = 'When multiple locations contain the same item i
 L['merge guildbank target'] = 'Merge stacks (guild bank)'
 L['merge guildbank target description'] = L['merge target description']
 L['none'] = 'None'
-L['backpack'] = GetString(2258)
-L['bank'] = GetString(790)
+L['backpack'] = GetString(SI_INVENTORY_MODE_INVENTORY)
+L['bank'] = GetString(SI_GUILDHISTORYCATEGORY2)
 L['guildbank'] = 'Guild Bank'
 
-L['tradeSucceeded'] = GetString(2073):gsub('%.$', '')
+L['tradeSucceeded'] = GetString(SI_TRADE_COMPLETE):gsub('%.$', '')
 L['attachmentsRetrieved'] = 'Mail attachments retrieved' -- GetString(2014)
 L['bank opened'] = 'Bank opened'
 L['guildbank opened'] = 'Guild Bank opened'
@@ -22,7 +22,7 @@ L['guildbank opened'] = 'Guild Bank opened'
 L['ignore items'] = 'Ignore items'
 L['ignore items description'] = 'Items that are on your ignore list will never be touched by Stacked.'
 L['ignore items info'] = 'Don\'t know which item an id represents? Use "/stacked list" to get clickable links of all excluded items.'
-L['ignore items help'] = 'Add a new line with either the item ID or link (via menu option "|cFFFFFF'..GetString(1796)..'|r|cFFFFB0" and copy the link into this text box).'
+L['ignore items help'] = 'Add a new line with either the item ID or link (via menu option "|cFFFFFF'..GetString(SI_ITEM_ACTION_LINK_TO_CHAT)..'|r|cFFFFB0" and copy the link into this text box).'
 
 -- L['Messages'] = 'Messages'
 L['item moved'] = 'Item was moved'

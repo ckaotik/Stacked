@@ -461,6 +461,7 @@ em:RegisterForEvent(addonName, EVENT_GUILD_BANK_ITEM_REMOVED, function(eventID, 
 		if itemLink then
 			addon.Print( L('moved item', itemLink, count or 1,
 				addon.GetSlotText(BAG_GUILDBANK, slot), addon.GetSlotText(BAG_BACKPACK)) )
+			-- TODO: how to add withdrawn items to bagPositions (to avoid depositing again after stacking)
 		end
 
 		local k = next(logs.withdraw)

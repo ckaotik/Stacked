@@ -3,7 +3,7 @@
 ## OptionalDependsOn: LibAddonMenu-1.0
 ## SavedVariables: StackedDB
 
-## APIVersion: 100003
+## APIVersion: 100004
 ## Version: 1.3
 
 libs\LibStub\LibStub.lua
