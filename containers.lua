@@ -111,7 +111,7 @@ local function CheckRestack(event)
 		direction = -1
 	end
 
-	addon.wipe(positions)
+	ZO_ClearTable(positions)
 	for bag = firstBag, lastBag, direction do
 		-- check if this bag may be stacked but still allow manual stacking (/stack or keybind)
 		if addon.GetSetting('stackContainer'..bag) or not event then
@@ -122,7 +122,7 @@ local function CheckRestack(event)
 			or (bag == BAG_BANK and moveTarget ~= L'bank') then
 			for key, position in pairs(positions) do
 				if position.bag == bag then
-					addon.wipe(positions[key])
+					ZO_ClearTable(positions[key])
 					positions[key] = nil
 				end
 			end

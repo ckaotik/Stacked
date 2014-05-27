@@ -6,15 +6,6 @@ _G[addonName] = addon
 -- GLOBALS: GetSlotStackSize, GetItemLink, CallSecureProtected, ClearCursor, GetMaxBags, GetBagInfo, LocalizeString, GetString, ZO_LinkHandler_CreateLink, ZO_LinkHandler_ParseLink, TransferToGuildBank, TransferFromGuildBank, GetSelectedGuildBankId, DoesPlayerHaveGuildPermission, CheckInventorySpaceSilently, GetNextGuildBankSlotId, SplitString, IsItemConsumable
 -- GLOBALS: string, math, pairs, select, tostring, type, table, tonumber, ipairs, zo_strformat, zo_strtrim, d, info
 
-function addon.wipe(object)
-	if not object or type(object) ~= 'table' then return end
-	for key, value in pairs(object) do
-		addon.wipe(value)
-		object[key] = nil
-	end
-	return object
-end
-
 function addon.Find(tab, value)
 	for k, v in pairs(tab) do
 		if v == value then

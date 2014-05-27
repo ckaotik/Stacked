@@ -29,10 +29,10 @@ local function Reset()
 	lastGuildID = nil
 	dataGuildID = nil
 
-	addon.wipe(bagPositions)
-	addon.wipe(guildPositions)
-	addon.wipe(logs.withdraw)
-	addon.wipe(logs.deposit)
+	ZO_ClearTable(bagPositions)
+	ZO_ClearTable(guildPositions)
+	ZO_ClearTable(logs.withdraw)
+	ZO_ClearTable(logs.deposit)
 end
 
 local function InitializeProgressFrame(parent)
@@ -279,7 +279,7 @@ local function StackGuildBank(guildID)
 	numFreedSlots = 0
 
 	-- scan guild bank
-	addon.wipe(guildPositions)
+	ZO_ClearTable(guildPositions)
 	local slot = nil
 	while true do
 		slot = GetNextGuildBankSlotId(slot)
@@ -307,7 +307,7 @@ local function StackGuildBank(guildID)
 	end
 
 	-- scan inventory
-	addon.wipe(bagPositions)
+	ZO_ClearTable(bagPositions)
 	local _, numSlots = GetBagInfo(BAG_BACKPACK)
 	for slot = 0, numSlots do
 		local itemLink = GetItemLink(BAG_BACKPACK, slot, LINK_STYLE_DEFAULT)
@@ -327,8 +327,8 @@ local function StackGuildBank(guildID)
 		end
 	end
 
-	addon.wipe(logs.withdraw)
-	addon.wipe(logs.deposit)
+	ZO_ClearTable(logs.withdraw)
+	ZO_ClearTable(logs.deposit)
 	local moveTarget = addon.GetSetting('moveTargetGB')
 	for key, slots in pairs(guildPositions) do
 		local keepSingleStacks = false
@@ -396,7 +396,7 @@ local function StackGuildBank(guildID)
 
 		if #guildPositions[key] < 2 and not keepSingleStacks then
 			-- this item no longer needs to be stacked
-			addon.wipe(guildPositions[key])
+			ZO_ClearTable(guildPositions[key])
 			guildPositions[key] = nil
 		end
 	end
@@ -486,7 +486,7 @@ em:RegisterForEvent(addonName, EVENT_GUILD_BANK_ITEM_REMOVED, function(eventID, 
 				if matchedKey then break end
 			end
 			if matchedKey and #guildPositions[matchedKey] < 2 then
-				addon.wipe(guildPositions[matchedKey])
+				ZO_ClearTable(guildPositions[matchedKey])
 				guildPositions[matchedKey] = nil
 			end
 		end
