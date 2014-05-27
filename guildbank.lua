@@ -77,6 +77,10 @@ local function UpdateProgress(itemLink, template, ...)
 	local icon = itemLink and GetItemLinkInfo(itemLink)
 	progress:GetNamedChild('Icon'):SetTexture(icon)
 	progress:GetNamedChild('Name'):SetText(L(template, itemLink, ...))
+
+	if addon.GetSetting('showGBStackDetail') then
+		addon.Print(L(template, itemLink, ...))
+	end
 end
 
 local function CanStackGuildBank(guildID)
@@ -411,7 +415,7 @@ em:RegisterForEvent(addonName, EVENT_GUILD_BANK_ITEM_ADDED, function(eventID, sl
 
 		local k = next(logs.deposit)
 		if k then
-			-- more depositing to do
+			-- more deposits to do
 			Push(BAG_BACKPACK, k)
 		elseif not next(logs.withdraw) then
 			-- stack right now!
@@ -476,7 +480,7 @@ em:RegisterForEvent(addonName, EVENT_GUILD_BANK_ITEM_REMOVED, function(eventID, 
 	end
 end)
 em:RegisterForEvent(addonName, EVENT_GUILD_BANK_TRANSFER_ERROR, function(evendID, errorMsg)
-	if errorMsg then errorMsg = GetString(_G['SI_GLOBALERRORCODE'..errorMsg]) end
+	if errorMsg then errorMsg = GetString(_G['SI_GLOBALERRORCODE'..errorMsg]) or errorMsg end
 	if state == STATE_STACKING then
 		addon.Print(L('failed stacking guildbank item', currentItemLink, errorMsg))
 		currentItemLink = nil
