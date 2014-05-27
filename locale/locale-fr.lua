@@ -50,12 +50,11 @@ L['/stacked include'] = '"|cFFFFFF/stacked include|r |cFF80401234|r" to un-ignor
 -- --------------------------------------------------------
 -- container stacking
 L['bag slot number'] = '<<1>> (Slot <<2>>)'
-L['stacked item'] = 'Stacked <<2*1>> from <<3>> to <<4>>'
-L['failed stacking item'] = 'Failed to stack <<2*1>> from <<3>> to <<4>>'
-L['stacked item in container'] = 'Stacked <<2*1>> in <<4>>'
-L['failed stacking item in container'] = 'Failed to stack <<2*1>> in <<4>>'
+L['stacked item'] = 'Stacked <<2*1>> (<<and(4,5)>>) in <<C:3>>.'
+L['failed stacking item'] = 'Stacking <<2*1>> in <<3>> failed.'
 L['moved item'] = 'Moved <<2*1>> from <<3>> to <<4>>'
 L['failed moving item'] = 'Failed to move <<2*1>> from <<3>> to <<4>>'
+L['stacking completed'] = 'Stacking completed.'
 
 -- --------------------------------------------------------
 -- guild bank stacking

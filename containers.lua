@@ -18,31 +18,32 @@ local function GetSlotText(bag, slot)
 end
 addon.GetSlotText = GetSlotText
 
-local function MoveItem(fromBag, fromSlot, toBag, toSlot, count, silent)
-	count = count or GetSlotStackSize(fromBag, fromSlot)
+local function MoveItem(fromBag, fromSlot, toBag, toSlot, count, destCount, silent)
+	local sourceCount = count or GetSlotStackSize(fromBag, fromSlot)
+	local destCount   = destCount or GetSlotStackSize(toBag, toSlot)
 
 	local success
-	if CallSecureProtected('PickupInventoryItem', fromBag, fromSlot, count) then
+	if CallSecureProtected('PickupInventoryItem', fromBag, fromSlot, sourceCount) then
 		success = CallSecureProtected('PlaceInInventory', toBag, toSlot)
 	end
 
 	if addon.db.showMessages and not silent then
 		local itemLink = GetItemLink(fromBag, fromSlot, LINK_STYLE_DEFAULT)
-		local template = success and 'moved item' or 'failed moving item'
-		if fromBag == toBag then
-			if addon.db.showSlot then
-				template = success and 'stacked item' or 'failed stacking item'
-			else
-				template = success and 'stacked item in container' or 'failed stacking item in container'
-				count = count + (GetSlotStackSize(toBag, toSlot))
-				-- TODO: FIXME: prints weird numbers
-			end
+		local output
+		if fromBag == toBag and not addon.db.showSlot then
+			output = L(success and 'stacked item' or 'failed stacking item',
+				itemLink, (sourceCount + destCount), GetSlotText(toBag, toSlot), sourceCount, destCount)
+		else
+			output = L(success and 'moved item' or 'failed moving item',
+				itemLink, sourceCount, GetSlotText(fromBag, fromSlot), GetSlotText(toBag, toSlot))
 		end
-		addon.Print( L(template, itemLink, count, GetSlotText(fromBag, fromSlot), GetSlotText(toBag, toSlot)) )
+		addon.Print(output)
 	end
 
 	-- clear the cursor to avoid issues
 	ClearCursor()
+
+	return success
 end
 
 local positions = {}
@@ -69,12 +70,17 @@ function addon.StackContainer(bag, itemKey, silent, excludeSlots)
 					-- do nothing
 				elseif data then
 					total = total + data.count
-					local success = MoveItem(bag, slot, data.bag, data.slot, count, silent)
-					-- item was moved
-					if success and total > stackSize then
+					local success = MoveItem(bag, slot, data.bag, data.slot, count, data.count, silent)
+					if not success then
+						-- oops, moving failed
+					elseif total > stackSize then
+						-- dest stack was full, remove, instead use updated source
 						data.bag = bag
 						data.slot = slot
 						data.count = total - stackSize
+					else
+						-- items fit, update count
+						data.count = total
 					end
 				else
 					-- first time encountering this item
@@ -122,6 +128,8 @@ local function CheckRestack(event)
 			end
 		end
 	end
+
+	addon.Print(L'stacking completed')
 end
 
 -- Events
