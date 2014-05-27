@@ -10,9 +10,9 @@ L['merge target description'] = 'Wenn ein Gegenstand in mehreren Taschen unvolls
 L['merge guildbank target'] = 'Stapel kombinieren (Gildenbank)'
 L['merge guildbank target description'] = L['merge target description']
 L['none'] = 'Keine'
-L['backpack'] = 'Inventar^n'
-L['bank'] = 'Bank^f'
-L['guildbank'] = 'Gildenbank^f'
+L['backpack'] = GetString(SI_INVENTORY_MODE_INVENTORY)
+L['bank'] = GetString(SI_GUILDHISTORYCATEGORY2)
+L['guildbank'] = 'Gildenbank'
 
 L['tradeSucceeded'] = GetString(SI_TRADE_COMPLETE):gsub('%.$', '')
 L['attachmentsRetrieved'] = 'Briefanhänge entnommen'
@@ -50,9 +50,9 @@ L['/stacked include'] = '"|cFFFFFF/stacked include|r |cFF80401234|r" um den Gege
 -- --------------------------------------------------------
 -- container stacking
 L['bag slot number'] = '<<1>> (Platz <<2>>)'
-L['stacked item'] = '<<2*1>> (<<and(4,5)>>) <<2[wurde/wurden]>> in <<3{den $s/der $s/dem $s}>> gestapelt.'
+L['stacked item'] = '<<2*1>> (<<and(4,5)>>) <<2[wurde/wurden]>> in gestapelt.' -- <<3{den $s/der $s/dem $s}>>
 L['failed stacking item'] = 'Stapeln von <<2*1>> in <<3>> ist fehlgeschlagen'
-L['moved item'] = '<<2*1>> wurde von <<3>> nach <<4>> bewegt'
+L['moved item'] = '<<2*1>> <<2[wurde/wurden]>> von <<3>> nach <<4>> bewegt'
 L['failed moving item'] = 'Bewegen von <<2*1>> in <<3>> nach <<4>> ist fehlgeschlagen'
 L['stacking completed'] = 'Stapeln abgeschlossen.'
 
