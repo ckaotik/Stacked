@@ -20,6 +20,10 @@ local currentItemLink, numItemsWithdrawn, numUsedStacks
 local dataGuildID, lastGuildID
 local emptyTable = {}
 
+local function DoGuildBankStacking() end -- forward declaration
+
+-- Helper Functions
+-----------------------------------------------------------
 local function Reset()
 	state = STATE_IDLE
 	lastGuildID = nil
@@ -85,7 +89,9 @@ end
 
 local function CanStackGuildBank(guildID)
 	local errorMsg
-	if not DoesGuildHavePrivilege(guildID, GUILD_PRIVILEGE_BANK_DEPOSIT) then
+	if state ~= STATE_IDLE then
+		errorMsg = L'busy'
+	elseif not DoesGuildHavePrivilege(guildID, GUILD_PRIVILEGE_BANK_DEPOSIT) then
 		errorMsg = L'not enough members'
 	elseif not DoesPlayerHaveGuildPermission(guildID, 15) -- deposit
 	  or not DoesPlayerHaveGuildPermission(guildID, 16) then -- withdraw
@@ -119,6 +125,29 @@ local function Push(bag, slot, key)
 	UpdateProgress(itemLink, 'deposit item', count)
 end
 
+-- Keybindings
+-----------------------------------------------------------
+local keybind = {
+	name = L'Stack',
+	keybind = 'STACKED_STACK',
+	callback = StackGuildBank,
+	enabled = function()
+		return CanStackGuildBank(GetSelectedGuildBankId())
+	end,
+	alignment = KEYBIND_STRIP_ALIGN_LEFT,
+}
+local function ShowKeybinds() KEYBIND_STRIP:AddKeybindButton(keybind) end
+local function HideKeybinds() KEYBIND_STRIP:RemoveKeybindButton(keybind) end
+
+ZO_PreHookHandler(ZO_GuildBank, 'OnShow', ShowKeybinds)
+ZO_PreHookHandler(ZO_GuildBank, 'OnHide', HideKeybinds)
+-- called when a guild bank is selected. used to disable button while waiting for data
+local callback = ZO_SelectGuildBankDialogAccept.callback
+ZO_SelectGuildBankDialogAccept.callback = function(...)
+	callback(...)
+	KEYBIND_STRIP:UpdateKeybindButton(keybind)
+end
+
 local function SetState(stateConstant, ...)
 	state = stateConstant
 
@@ -133,13 +162,14 @@ local function SetState(stateConstant, ...)
 	elseif state == STATE_IDLE then
 		progress:SetHidden(true)
 		addon.Print(L('guild bank state '..stateConstant, ...))
+		lastGuildID = nil
 	end
 
-	KEYBIND_STRIP:UpdateKeybindButtonGroup(addon.bindings)
+	KEYBIND_STRIP:UpdateKeybindButton(keybind)
 end
 
-local function DoGuildBankStacking() end -- forward declaration
-
+-- Main Logic
+-----------------------------------------------------------
 local function DepositGuildBankItems(eventID)
 	if not currentItemLink then return end
 	local moveTarget = addon.GetSetting('moveTargetGB')
@@ -494,54 +524,6 @@ end)
 em:RegisterForEvent(addonName, EVENT_GUILD_BANK_ITEMS_READY, function()
 	local guildID = GetSelectedGuildBankId() -- internal id of selected guild
 	dataGuildID = guildID
-	KEYBIND_STRIP:UpdateKeybindButtonGroup(addon.bindings)
+	KEYBIND_STRIP:UpdateKeybindButton(keybind)
 	if addon.GetSetting('guildbank') and addon.GetSetting('stackContainer'..BAG_GUILDBANK..guildID) then StackGuildBank() end
-end)
-
--- Keybindings
------------------------------------------------------------
--- adjust keybinds since we use one binding for both, container and guld bank stacking
-if not addon.bindings[1] then
-	table.insert(addon.bindings, {
-		name = L'Stack',
-		keybind = 'STACKED_STACK',
-		callback = StackGuildBank,
-	})
-end
-local binding = addon.bindings[1]
-
-local callback = binding.callback
-binding.callback = function()
-	if not ZO_GuildBank:IsHidden() then
-		StackGuildBank()
-	elseif callback then
-		callback()
-	end
-end
-local visible = binding.visible
-binding.visible = function()
-	if not ZO_GuildBank:IsHidden() and CanStackGuildBank(GetSelectedGuildBankId()) then
-		return true
-	elseif visible then
-		return visible()
-	end
-end
-local enabled = binding.enabled
-binding.enabled = function(...)
-	if not ZO_GuildBank:IsHidden() then
-		return state == STATE_IDLE -- and CanStackGuildBank(GetSelectedGuildBankId())
-	elseif enabled then
-		return enabled(...)
-	else
-		return true
-	end
-end
-
-local guildbank_SetHidden = ZO_GuildBank.SetHidden
-ZO_GuildBank.SetHidden = function(self, hidden)
-	guildbank_SetHidden(self, hidden)
-	KEYBIND_STRIP:UpdateKeybindButtonGroup(addon.bindings)
-end
-em:RegisterForEvent(addonName, EVENT_GUILD_BANK_SELECTED, function(self, guildID)
-	KEYBIND_STRIP:UpdateKeybindButtonGroup(addon.bindings)
 end)

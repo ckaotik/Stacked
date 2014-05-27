@@ -47,7 +47,6 @@ addon.L = setmetatable({}, {
 })
 local L = addon.L
 
-addon.bindings = { alignment = KEYBIND_STRIP_ALIGN_LEFT }
 ZO_CreateStringId('SI_BINDING_NAME_STACKED_STACK', L'Stack')
 
 -- --------------------------------------------------------

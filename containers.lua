@@ -143,24 +143,17 @@ em:RegisterForEvent(addonName, EVENT_OPEN_BANK, function() CheckRestack('EVENT_O
 -----------------------------------------------------------
 addon.slashCommandHelp = (addon.slashCommandHelp or '') .. '\n' .. L'/stack'
 SLASH_COMMANDS['/stack'] = CheckRestack
-table.insert(addon.bindings, {
+
+local keybind = {
 	name = L'Stack',
 	keybind = 'STACKED_STACK',
 	callback = CheckRestack,
-	visible = function()
-		return not ZO_PlayerBank:IsHidden() or not ZO_PlayerInventory:IsHidden()
-	end,
-})
--- add keybinds always since inventory does not trigger an event
-KEYBIND_STRIP:AddKeybindButtonGroup(addon.bindings)
+	alignment = KEYBIND_STRIP_ALIGN_LEFT,
+}
+local function ShowKeybinds() KEYBIND_STRIP:AddKeybindButton(keybind) end
+local function HideKeybinds() KEYBIND_STRIP:RemoveKeybindButton(keybind) end
 
-local inventory_SetHidden = ZO_PlayerInventory.SetHidden
-ZO_PlayerInventory.SetHidden = function(...)
-	inventory_SetHidden(...)
-	KEYBIND_STRIP:UpdateKeybindButtonGroup(addon.bindings)
-end
-local bank_SetHidden = ZO_PlayerBank.SetHidden
-ZO_PlayerBank.SetHidden = function(...)
-	bank_SetHidden(...)
-	KEYBIND_STRIP:UpdateKeybindButtonGroup(addon.bindings)
-end
+ZO_PreHookHandler(ZO_PlayerInventory, 'OnShow', ShowKeybinds)
+ZO_PreHookHandler(ZO_PlayerInventory, 'OnHide', HideKeybinds)
+ZO_PreHookHandler(ZO_PlayerBank, 'OnShow', ShowKeybinds)
+ZO_PreHookHandler(ZO_PlayerBank, 'OnHide', HideKeybinds)
