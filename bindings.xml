@@ -1,5 +1,6 @@
 <Bindings>
-	<Layer name="SI_KEYBINDINGS_LAYER_GENERAL">
+	<!-- using this layer allows binding general bound keys -->
+	<Layer name="SI_KEYBINDINGS_LAYER_USER_INTERFACE_SHORTCUTS">
 		<Category name="Stacked">
 			<Action name="STACKED_STACK">
 				<Down>SLASH_COMMANDS['/stack']()</Down>
