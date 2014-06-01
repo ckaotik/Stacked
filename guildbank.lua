@@ -179,8 +179,7 @@ local function DepositGuildBankItems(eventID)
 		local itemLink = GetItemLink(BAG_BACKPACK, slot, LINK_STYLE_DEFAULT)
 		local key      = GetItemInstanceId(BAG_BACKPACK, slot)
 
-		if itemLink == currentItemLink
-			and not (bagPositions[key] and addon.Find(bagPositions[key], slot)) then
+		if itemLink == currentItemLink and not (bagPositions[key] and addon.Find(bagPositions[key], slot)) then
 			local _, count, _, _, locked = GetItemInfo(BAG_BACKPACK, slot)
 			Push(BAG_BACKPACK, slot, key)
 
@@ -211,12 +210,9 @@ function DoGuildBankStacking(eventID)
 						-- we've taken all stacks of item
 						guildPositions[key] = nil
 
-						-- restack in backpack but ignore items we had ourselves
-						addon.StackContainer(BAG_BACKPACK, key, true, bagPositions[key])
-
-						-- TODO: wait for items in inventory to unlock!
-						DepositGuildBankItems()
-						-- wait for it to call DoGuildBankStacking again
+						-- restack in backpack but ignore items we had ourselves, when done call Deposit
+						addon.StackContainer(BAG_BACKPACK, key, true, bagPositions[key], DepositGuildBankItems)
+						-- wait for DepositGuildBankItems to call DoGuildBankStacking again
 						return
 					else
 						slot = slots[1]

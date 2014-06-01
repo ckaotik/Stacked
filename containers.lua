@@ -18,6 +18,7 @@ local function GetSlotText(bag, slot)
 end
 addon.GetSlotText = GetSlotText
 
+local moveLog = {}
 local function MoveItem(fromBag, fromSlot, toBag, toSlot, count, destCount, silent)
 	local sourceCount = count or GetSlotStackSize(fromBag, fromSlot)
 	local destCount   = destCount or GetSlotStackSize(toBag, toSlot)
@@ -43,11 +44,17 @@ local function MoveItem(fromBag, fromSlot, toBag, toSlot, count, destCount, sile
 	-- clear the cursor to avoid issues
 	ClearCursor()
 
+	if success then
+		moveLog[toBag..'.'..toSlot] = (moveLog[toBag..'.'..toSlot] or 0) + 1
+	end
+
 	return success
 end
 
 local positions = {}
-function addon.StackContainer(bag, itemKey, silent, excludeSlots)
+local callbacks = {}
+function addon.StackContainer(bag, itemKey, silent, excludeSlots, callback)
+	local didSomething = false
 	local _, numSlots = GetBagInfo(bag)
 	for slot = 0, numSlots do
 		local itemLink = GetItemLink(bag, slot, LINK_STYLE_DEFAULT)
@@ -71,16 +78,22 @@ function addon.StackContainer(bag, itemKey, silent, excludeSlots)
 				elseif data then
 					total = total + data.count
 					local success = MoveItem(bag, slot, data.bag, data.slot, count, data.count, silent)
-					if not success then
-						-- oops, moving failed
-					elseif total > stackSize then
-						-- dest stack was full, remove, instead use updated source
-						data.bag = bag
-						data.slot = slot
-						data.count = total - stackSize
-					else
-						-- items fit, update count
-						data.count = total
+					if success then
+						if not didSomething and callback then
+							-- first action taken
+							callbacks[bag] = callback
+							didSomething = true
+						end
+
+						if total > stackSize then
+							-- dest stack was full, remove, instead use updated source
+							data.bag = bag
+							data.slot = slot
+							data.count = total - stackSize
+						else
+							-- items fit, update count
+							data.count = total
+						end
 					end
 				else
 					-- first time encountering this item
@@ -138,6 +151,30 @@ local em = GetEventManager()
 em:RegisterForEvent(addonName, EVENT_TRADE_SUCCEEDED, function() CheckRestack('EVENT_TRADE_SUCCEEDED') end)
 em:RegisterForEvent(addonName, EVENT_MAIL_TAKE_ATTACHED_ITEM_SUCCESS, function() CheckRestack('EVENT_MAIL_TAKE_ATTACHED_ITEM_SUCCESS') end)
 em:RegisterForEvent(addonName, EVENT_OPEN_BANK, function() CheckRestack('EVENT_OPEN_BANK') end)
+em:RegisterForEvent(addonName, EVENT_INVENTORY_SINGLE_SLOT_UPDATE, function(eventID, bagID, slotID, isNew, sound, updateReason)
+	local slot = bagID..'.'..slotID
+	if moveLog[slot] then
+		if moveLog[slot] <= 1 then
+			moveLog[slot] = nil
+		else
+			moveLog[slot] = moveLog[slot] -1
+		end
+	end
+
+	if not callbacks[bagID] then return end
+	local bagDone = true
+	for moveSlot, num in pairs(moveLog) do
+		local bag = math.floor(tonumber(moveSlot))
+		if bag == bagID then
+			bagDone = false
+			break
+		end
+	end
+	if bagDone then
+		callbacks[bagID]()
+		callbacks[bagID] = nil
+	end
+end)
 
 -- Keybindings
 -----------------------------------------------------------

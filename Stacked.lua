@@ -15,13 +15,17 @@ function addon.Find(tab, value)
 end
 
 function addon.Print(format, ...)
+	local text
 	if type(info) == 'function' then
 		info(format, ...)
-	elseif type(format) == 'string' then
-		d(format:format(...))
+		return
+	elseif type(format) == 'string' and format:find('%[1234567890]*[sd]') then
+		text = format:format(...)
 	else
-		d(format, ...)
+		text = zo_strjoin(', ', format, ...)
 	end
+	-- CHAT_SYSTEM:AddMessage('|cFFFFFFStacked|r '..text)
+	if text then CHAT_SYSTEM:AddMessage(text) end
 end
 
 addon.L = setmetatable({}, {
