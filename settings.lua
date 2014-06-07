@@ -154,11 +154,11 @@ function addon.CreateSlashCommands()
 			addon.db[option] = (value and value ~= 'false') and true or false
 			addon.Print('Stacked option "%s" is now set to %s', option, value)
 		elseif option == 'list' or (option == 'exclude' and not value) then
-			local list = ''
+			local list
 			for itemID, _ in pairs(addon.db.exclude) do
-				list = (list ~= '' and list..', ' or '') .. GetLinkFromID(itemID)
+				list = (list and list..', ' or '') .. GetLinkFromID(itemID)
 			end
-			addon.Print('Stacked ignores %s', list ~= '' and list or 'no items')
+			addon.Print('Stacked ignores %s', list or 'no items')
 		elseif option == 'exclude' then
 			local _, _, _, itemID = ZO_LinkHandler_ParseLink(value)
 			if itemID then value = itemID end
