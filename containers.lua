@@ -2,8 +2,10 @@ local addonName, _ = 'Stacked'
 local addon = _G[addonName]
 local L = addon.L
 
+STACKED_CONTAINER_COMPLETED = 'Stacked_ContainerStackingCompleted'
+
 -- GLOBALS: LINK_STYLE_DEFAULT, BAG_BANK, KEYBIND_STRIP, ZO_GuildBank
--- GLOBALS: GetSlotStackSize, ClearCursor, LocalizeString, CallSecureProtected, GetBagInfo, GetItemLink, GetMaxBags, IsItemConsumable, ZO_LinkHandler_ParseLink, GetItemInstanceId
+-- GLOBALS: GetSlotStackSize, ClearCursor, CallSecureProtected, GetBagInfo, GetItemLink, GetMaxBags, IsItemConsumable, ZO_LinkHandler_ParseLink, GetItemInstanceId
 -- GLOBALS: string, pairs, tonumber
 
 local function GetSlotText(bag, slot)
@@ -52,9 +54,7 @@ local function MoveItem(fromBag, fromSlot, toBag, toSlot, count, destCount, sile
 end
 
 local positions = {}
-local callbacks = {}
-function addon.StackContainer(bag, itemKey, silent, excludeSlots, callback)
-	local didSomething = false
+function addon.StackContainer(bag, itemKey, silent, excludeSlots)
 	local _, numSlots = GetBagInfo(bag)
 	for slot = 0, numSlots do
 		local itemLink = GetItemLink(bag, slot, LINK_STYLE_DEFAULT)
@@ -79,12 +79,6 @@ function addon.StackContainer(bag, itemKey, silent, excludeSlots, callback)
 					total = total + data.count
 					local success = MoveItem(bag, slot, data.bag, data.slot, count, data.count, silent)
 					if success then
-						if not didSomething and callback then
-							-- first action taken
-							callbacks[bag] = callback
-							didSomething = true
-						end
-
 						if total > stackSize then
 							-- dest stack was full, remove, instead use updated source
 							data.bag = bag
@@ -161,7 +155,6 @@ em:RegisterForEvent(addonName, EVENT_INVENTORY_SINGLE_SLOT_UPDATE, function(even
 		end
 	end
 
-	if not callbacks[bagID] then return end
 	local bagDone = true
 	for moveSlot, num in pairs(moveLog) do
 		local bag = math.floor(tonumber(moveSlot))
@@ -171,8 +164,7 @@ em:RegisterForEvent(addonName, EVENT_INVENTORY_SINGLE_SLOT_UPDATE, function(even
 		end
 	end
 	if bagDone then
-		callbacks[bagID]()
-		callbacks[bagID] = nil
+		CALLBACK_MANAGER:FireCallbacks(STACKED_CONTAINER_COMPLETED)
 	end
 end)
 

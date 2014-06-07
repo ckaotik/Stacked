@@ -34,9 +34,7 @@ addon.L = setmetatable({}, {
 		return text or key -- and LocalizeString('<<1>>', text)
 	end,
 	__call = function(self, key, ...)
-		local text = rawget(self, key)
-		if not text then return key end
-
+		local text = self[key]
 		return LocalizeString(text, ...)
 	end,
 })
@@ -49,6 +47,7 @@ ZO_CreateStringId('SI_BINDING_NAME_STACKED_STACK', L'Stack')
 -- --------------------------------------------------------
 local function Initialize(eventCode, arg1, ...)
 	if arg1 ~= addonName then return end
+	EVENT_MANAGER:UnregisterForEvent(addonName, EVENT_ADD_ON_LOADED)
 
 	-- TODO: split settings & pull from their modules
 	addon.db = ZO_SavedVars:New(addonName..'DB', 3, nil, {

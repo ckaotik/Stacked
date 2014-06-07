@@ -3,7 +3,7 @@ local addon = _G[addonName]
 local L = addon.L
 
 -- GLOBALS: LINK_STYLE_DEFAULT, BAG_GUILDBANK, BAG_BACKPACK, SI_TOOLTIP_ITEM_NAME, GUILD_PRIVILEGE_BANK_DEPOSIT, KEYBIND_STRIP, ZO_GuildBank
--- GLOBALS: GetItemLink, GetNextGuildBankSlotId, GetSlotStackSize, CheckInventorySpaceSilently, GetBagInfo, ZO_LinkHandler_ParseLink, DoesPlayerHaveGuildPermission, DoesGuildHavePrivilege, TransferToGuildBank, TransferFromGuildBank, GetSelectedGuildBankId, IsItemConsumable, LocalizeString, GetItemInstanceId, GetItemInfo
+-- GLOBALS: GetItemLink, GetNextGuildBankSlotId, GetSlotStackSize, CheckInventorySpaceSilently, GetBagInfo, ZO_LinkHandler_ParseLink, DoesPlayerHaveGuildPermission, DoesGuildHavePrivilege, TransferToGuildBank, TransferFromGuildBank, GetSelectedGuildBankId, IsItemConsumable, GetItemInstanceId, GetItemInfo
 -- GLOBALS: tonumber, table, pairs, ipairs, zo_strformat, type, next
 
 local STATE_IDLE, STATE_PREPARE, STATE_MOVING, STATE_STACKING = 0, 1, 2, 3
@@ -170,7 +170,9 @@ end
 
 -- Main Logic
 -----------------------------------------------------------
-local function DepositGuildBankItems(eventID)
+local function DepositGuildBankItems(eventID, ...)
+	CALLBACK_MANAGER:UnregisterCallback(STACKED_CONTAINER_COMPLETED, DepositGuildBankItems)
+
 	if not currentItemLink then return end
 	local moveTarget = addon.GetSetting('moveTargetGB')
 
@@ -210,8 +212,10 @@ function DoGuildBankStacking(eventID)
 						-- we've taken all stacks of item
 						guildPositions[key] = nil
 
-						-- restack in backpack but ignore items we had ourselves, when done call Deposit
-						addon.StackContainer(BAG_BACKPACK, key, true, bagPositions[key], DepositGuildBankItems)
+						-- restack in backpack but ignore items we had ourselves
+						addon.StackContainer(BAG_BACKPACK, key, true, bagPositions[key])
+						CALLBACK_MANAGER:RegisterCallback(STACKED_CONTAINER_COMPLETED, DepositGuildBankItems)
+
 						-- wait for DepositGuildBankItems to call DoGuildBankStacking again
 						return
 					else
