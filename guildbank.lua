@@ -93,8 +93,8 @@ local function CanStackGuildBank(guildID)
 		errorMsg = L'busy'
 	elseif not DoesGuildHavePrivilege(guildID, GUILD_PRIVILEGE_BANK_DEPOSIT) then
 		errorMsg = L'not enough members'
-	elseif not DoesPlayerHaveGuildPermission(guildID, 15) -- deposit
-	  or not DoesPlayerHaveGuildPermission(guildID, 16) then -- withdraw
+	elseif not DoesPlayerHaveGuildPermission(guildID, GUILD_PERMISSION_BANK_DEPOSIT) -- deposit: 15
+	  or not DoesPlayerHaveGuildPermission(guildID, GUILD_PERMISSION_BANK_WITHDRAW) then -- withdraw: 16
 		errorMsg = L'insufficient permissions'
 	elseif not CheckInventorySpaceSilently(2) then
 		errorMsg = L'inventory full'
