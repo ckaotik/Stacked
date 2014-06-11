@@ -73,6 +73,13 @@ local function SetSetting(setting, value)
 end
 addon.SetSetting = SetSetting
 
+function addon.IsItemIgnored(item)
+	if not item or item == '' then return end
+	local _, _, _, itemID = ZO_LinkHandler_ParseLink(item)
+	if isNumber(itemID) then itemID = tonumber(itemID) end
+	return addon.db.exclude[itemID] and true or false
+end
+
 function addon.CreateSettings()
 	local LAM = LibStub('LibAddonMenu-1.0')
 	local panel = LAM:CreateControlPanel(addonName..'Settings', addonName)
