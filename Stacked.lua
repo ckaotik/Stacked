@@ -19,7 +19,7 @@ function addon.Print(format, ...)
 	if type(info) == 'function' then
 		info(format, ...)
 		return
-	elseif type(format) == 'string' and format:find('%[1234567890]*[sd]') then
+	elseif type(format) == 'string' and format:find('%%[1234567890]*[sd]') then
 		text = format:format(...)
 	else
 		text = zo_strjoin(', ', format, ...)
