@@ -24,6 +24,9 @@ L['ignore items description'] = 'Items that are on your ignore list will never b
 L['ignore items info'] = 'Don\'t know which item an id represents? Use "/stacked list" to get clickable links of all excluded items.'
 L['ignore items help'] = 'Add a new line with either the item ID or link (via menu option "|cFFFFFF'..GetString(SI_ITEM_ACTION_LINK_TO_CHAT)..'|r|cFFFFB0" and copy the link into this text box).'
 
+L['ignore item'] = 'Ignore when stacking'
+L['unignore item'] = 'Include when stacking'
+
 -- L['Messages'] = 'Messages'
 L['item moved'] = 'Item was moved'
 L['item moved description'] = 'Enable chat output when an item has been moved.'

@@ -192,4 +192,29 @@ function addon.CreateSlashCommands()
 			addon.Print('Stacked no longer ignores %s', GetLinkFromID(value))
 		end
 	end
+
+	-- Add item dropdown menu options
+	local object, itemLink
+	local function MarkItemAsIgnored() SLASH_COMMANDS['/stacked']('exclude '..itemLink) end
+	local function MarkItemAsUnignored() SLASH_COMMANDS['/stacked']('include '..itemLink) end
+	local menuCallback = function()
+		-- menu has been closed already?
+		if ZO_Menu_GetNumMenuItems() == 0 then return end
+
+		if ZO_InventorySlot_GetType(object) == SLOT_TYPE_ITEM then
+			local bag, slot = ZO_Inventory_GetBagAndIndex(object)
+			itemLink = GetItemLink(bag, slot)
+
+			if Stacked.IsItemIgnored(itemLink) then
+				AddMenuItem(L'unignore item', MarkItemAsUnignored)
+			else
+				AddMenuItem(L'ignore item', MarkItemAsIgnored)
+			end
+		end
+		if ZO_Menu_GetNumMenuItems() > 0 then ShowMenu(nil, 1) end
+	end
+	ZO_PreHook('ZO_InventorySlot_ShowContextMenu', function(inventorySlot)
+		object = inventorySlot
+		zo_callLater(menuCallback, 1)
+	end)
 end

@@ -24,6 +24,9 @@ L['ignore items description'] = 'Gegenstände auf deiner Ignorieren-Liste werden
 L['ignore items info'] = 'Nutze "|cFFFFFF/stacked list|r" um eine klickbare Liste aller ignorierten Gegenstände auszugeben. So kannst du leicht deren Namen herausfinden!'
 L['ignore items help'] = 'Eine Zeile pro Gegenstand mit entweder der Gegenstands-ID oder dem Link (nutze die Option "|cFFFFFF'..GetString(SI_ITEM_ACTION_LINK_TO_CHAT)..'|r|cFFFFB0" und kopiere den Chat-Link in dieses Textfeld).'
 
+L['ignore item'] = 'Nicht stapeln'
+L['unignore item'] = 'Stapeln erlauben'
+
 L['Messages'] = 'Nachrichten'
 L['item moved'] = 'Gegenstand wurde bewegt'
 L['item moved description'] = 'Zeige eine Chat-Nachricht wenn ein Gegenstand bewegt wurde.'
