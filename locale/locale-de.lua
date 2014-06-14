@@ -22,7 +22,7 @@ L['guildbank opened'] = 'Gildenbank geöffnet'
 L['ignore items'] = 'Gegenstände ignorieren'
 L['ignore items description'] = 'Gegenstände auf deiner Ignorieren-Liste werden nicht von Stacked betrachtet.'
 L['ignore items info'] = 'Nutze "|cFFFFFF/stacked list|r" um eine klickbare Liste aller ignorierten Gegenstände auszugeben. So kannst du leicht deren Namen herausfinden!'
-L['ignore items help'] = 'Eine Zeile pro Gegenstand mit entweder der Gegenstands-ID oder dem Link (nutze die Option "|cFFFFFF'..GetString(SI_ITEM_ACTION_LINK_TO_CHAT)..'|r|cFFFFB0" und kopiere den Chat-Link in dieses Textfeld).'
+L['ignore items help'] = 'Eine Zeile pro Gegenstand mit entweder der Gegenstands-ID oder dem Link (nutze die Option "|cFFFFFF'..GetString(SI_ITEM_ACTION_LINK_TO_CHAT)..'|r" und kopiere den Chat-Link in dieses Textfeld).'
 
 L['ignore item'] = 'Nicht stapeln'
 L['unignore item'] = 'Stapeln erlauben'
