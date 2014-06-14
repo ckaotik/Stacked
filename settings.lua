@@ -96,7 +96,6 @@ function addon.CreateSettings()
 			text = 'Stacked allows you to easily and automatically restack your inventory, bank and guild bank to conserve space.',
 		},
 
-		{ type = 'header', name = L'General Options', },
 		{
 			type = 'dropdown',
 			name = L'merge target',
@@ -308,7 +307,7 @@ function addon.CreateSlashCommands()
 			local _, maxStack = GetSlotStackSize(bag, slot)
 			if maxStack > 1 then
 				itemLink = GetItemLink(bag, slot)
-				if Stacked.IsItemIgnored(itemLink) then
+				if addon.IsItemIgnored(itemLink) then
 					AddMenuItem(L'unignore item', MarkItemAsUnignored)
 				else
 					AddMenuItem(L'ignore item', MarkItemAsIgnored)
