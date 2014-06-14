@@ -152,15 +152,14 @@ function addon.CreateSettings()
 			setFunc = function(value) SetSetting('showGBStackDetail', value) end,
 		},
 
-		{ type = 'header', name = L'Automatic Stacking', },
-		{
-			type = 'description',
-			text = '|cFFFFB0'..L'automatic events'..'\n'..L'automatic containers'..'|r',
-		},
 		{
 			type = 'submenu',
 			name = zo_strformat(SI_TOOLTIP_ITEM_NAME, GetString(SI_CAMPAIGNRULESETTYPE3)),
 			controls = {
+				{
+					type = 'description',
+					text = L'automatic events',
+				},
 				{
 					type = 'checkbox',
 					name = L'tradeSucceeded',
@@ -191,6 +190,10 @@ function addon.CreateSettings()
 			type = 'submenu',
 			name = zo_strformat(SI_TOOLTIP_ITEM_NAME, GetString(SI_ITEMTYPE18)),
 			controls = {
+				{
+					type = 'description',
+					text = L'automatic containers',
+				},
 				{
 					type = 'checkbox',
 					name = L'backpack',
