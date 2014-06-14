@@ -81,66 +81,165 @@ function addon.IsItemIgnored(item)
 end
 
 function addon.CreateSettings()
-	local LAM = LibStub('LibAddonMenu-1.0')
-	local panel = LAM:CreateControlPanel(addonName..'Settings', addonName)
+	local panelData = {
+		type = 'panel',
+		name = addonName,
+		author = 'ckaotik',
+		version = '1.3',
+		registerForRefresh = true,
+		registerForDefaults = true,
+	}
 
-	LAM:AddHeader(panel, addonName..'HeaderGeneral', L'General Options')
-	LAM:AddDropdown(panel, addonName..'MoveTarget',
-		L'merge target', L'merge target description',
-		{L'none', L'backpack', L'bank'},
-		function() return GetSetting('moveTarget') end, function(value) SetSetting('moveTarget', value) end)
-	LAM:AddDropdown(panel, addonName..'MoveTargetGB',
-		L'merge guildbank target', L'merge guildbank target description',
-		{L'none', --[[L'backpack',--]] L'guildbank'},
-		function() return GetSetting('moveTargetGB') end, function(value) SetSetting('moveTargetGB', value) end)
-	LAM:AddEditBox(panel, addonName..'Exclude',
-		L'ignore items', L'ignore items description', true,
-		function() return GetSetting('exclude') end, function(value) SetSetting('exclude', value) end,
-		true, L'ignore items info')
-	LAM:AddDescription(panel, addonName..'ExcludeDesc', '|cFFFFB0'..L'ignore items help'..'|r')
+	local optionsTable = {
+		{
+			type = 'description',
+			text = 'Stacked allows you to easily and automatically restack your inventory, bank and guild bank to conserve space.',
+		},
 
-	LAM:AddHeader(panel, addonName..'HeaderMessages', L'Messages')
-	LAM:AddCheckbox(panel, addonName..'ToggleMessages',
-		L'item moved', L'item moved description',
-		function() return GetSetting('showMessages') end, function(value) SetSetting('showMessages', value) end)
-	LAM:AddCheckbox(panel, addonName..'ToggleSlot',
-		L'slots', L'slots description',
-		function() return GetSetting('showSlot') end, function(value) SetSetting('showSlot', value) end)
-	LAM:AddCheckbox(panel, addonName..'ToggleGBStack',
-		L'guild bank details', L'guild bank details description',
-		function() return GetSetting('showGBStackDetail') end, function(value) SetSetting('showGBStackDetail', value) end)
+		{ type = 'header', name = L'General Options', },
+		{
+			type = 'dropdown',
+			name = L'merge target',
+			tooltip = L'merge target description',
+			choices = {L'none', L'backpack', L'bank'},
+			getFunc = function() return GetSetting('moveTarget') end,
+			setFunc = function(value) SetSetting('moveTarget', value) end,
+		},
+		{
+			type = 'dropdown',
+			name = L'merge guildbank target',
+			tooltip = L'merge guildbank target description',
+			choices = {L'none', --[[L'backpack',--]] L'guildbank'},
+			getFunc = function() return GetSetting('moveTargetGB') end,
+			setFunc = function(value) SetSetting('moveTargetGB', value) end,
+		},
+		{
+			type = 'editbox',
+			name = L'ignore items',
+			tooltip = L'ignore items description',
+			warning = L'ignore items info',
+			isMultiline = true,
+			width = 'full',
+			reference = addonName..'Exclude',
+			getFunc = function() return GetSetting('exclude') end,
+			setFunc = function(value) SetSetting('exclude', value) end,
+		},
+		{
+			type = 'description',
+			text = L'ignore items help',
+		},
 
-	LAM:AddHeader(panel, addonName..'HeaderStacking', L'Automatic Stacking')
-	LAM:AddDescription(panel, addonName..'EventsDesc', '|cFFFFB0'..L'automatic events'..'|r')
-	LAM:AddCheckbox(panel, addonName..'ToggleTrade',
-		L'tradeSucceeded', nil,
-		function() return GetSetting('trade') end, function(value) SetSetting('trade', value) end)
-	LAM:AddCheckbox(panel, addonName..'ToggleMail',
-		L'attachmentsRetrieved', nil,
-		function() return GetSetting('mail') end, function(value) SetSetting('mail', value) end)
-	LAM:AddCheckbox(panel, addonName..'ToggleBank',
-		L'bank opened', nil,
-		function() return GetSetting('bank') end, function(value) SetSetting('bank', value) end)
-	LAM:AddCheckbox(panel, addonName..'ToggleGuildBank',
-		L'guildbank opened', nil,
-		function() return GetSetting('guildbank') end, function(value) SetSetting('guildbank', value) end)
+		{ type = 'header', name = L'Messages', },
+		{
+			type = 'checkbox',
+			name = L'item moved',
+			tooltip = L'item moved description',
+			getFunc = function() return GetSetting('showMessages') end,
+			setFunc = function(value) SetSetting('showMessages', value) end,
+		},
+		{
+			type = 'checkbox',
+			name = L'slots',
+			tooltip = L'slots description',
+			getFunc = function() return GetSetting('showSlot') end,
+			setFunc = function(value) SetSetting('showSlot', value) end,
+		},
+		{
+			type = 'checkbox',
+			name = L'guild bank details',
+			tooltip = L'guild bank details description',
+			getFunc = function() return GetSetting('showGBStackDetail') end,
+			setFunc = function(value) SetSetting('showGBStackDetail', value) end,
+		},
 
-	LAM:AddDescription(panel, addonName..'ContainersDesc', '|cFFFFB0'..L'automatic containers'..'|r')
-	LAM:AddCheckbox(panel, addonName..'ToggleContainer'..BAG_BACKPACK,
-		L'backpack', nil,
-		function() return GetSetting('stackContainer'..BAG_BACKPACK) end,
-		function(value) SetSetting('stackContainer'..BAG_BACKPACK, value) end)
-	LAM:AddCheckbox(panel, addonName..'ToggleContainer'..BAG_BANK,
-		L'bank', nil,
-		function() return GetSetting('stackContainer'..BAG_BANK) end,
-		function(value) SetSetting('stackContainer'..BAG_BANK, value) end)
-	local bag = BAG_GUILDBANK
-	for i = 1, 5 do
-		LAM:AddCheckbox(panel, addonName..'ToggleContainer'..BAG_GUILDBANK..i,
-			L'guildbank'..' '..i, nil,
-			function() return GetSetting('stackContainer'..BAG_GUILDBANK..i) end,
-			function(value) SetSetting('stackContainer'..BAG_GUILDBANK..i, value) end)
-	end
+		{ type = 'header', name = L'Automatic Stacking', },
+		{
+			type = 'description',
+			text = '|cFFFFB0'..L'automatic events'..'\n'..L'automatic containers'..'|r',
+		},
+		{
+			type = 'submenu',
+			name = zo_strformat(SI_TOOLTIP_ITEM_NAME, GetString(SI_CAMPAIGNRULESETTYPE3)),
+			controls = {
+				{
+					type = 'checkbox',
+					name = L'tradeSucceeded',
+					getFunc = function() return GetSetting('trade') end,
+					setFunc = function(value) SetSetting('trade', value) end,
+				},
+				{
+					type = 'checkbox',
+					name = L'attachmentsRetrieved',
+					getFunc = function() return GetSetting('mail') end,
+					setFunc = function(value) SetSetting('mail', value) end,
+				},
+				{
+					type = 'checkbox',
+					name = L'bank opened',
+					getFunc = function() return GetSetting('bank') end,
+					setFunc = function(value) SetSetting('bank', value) end,
+				},
+				{
+					type = 'checkbox',
+					name = L'guildbank opened',
+					getFunc = function() return GetSetting('guildbank') end,
+					setFunc = function(value) SetSetting('guildbank', value) end,
+				},
+			},
+		},
+		{
+			type = 'submenu',
+			name = zo_strformat(SI_TOOLTIP_ITEM_NAME, GetString(SI_ITEMTYPE18)),
+			controls = {
+				{
+					type = 'checkbox',
+					name = L'backpack',
+					getFunc = function() return GetSetting('stackContainer'..BAG_BACKPACK) end,
+					setFunc = function(value) SetSetting('stackContainer'..BAG_BACKPACK, value) end,
+				},
+				{
+					type = 'checkbox',
+					name = L'bank',
+					getFunc = function() return GetSetting('stackContainer'..BAG_BANK) end,
+					setFunc = function(value) SetSetting('stackContainer'..BAG_BANK, value) end,
+				},
+				{
+					type = 'checkbox',
+					name = L'guildbank'..' 1',
+					getFunc = function() return GetSetting('stackContainer'..BAG_GUILDBANK..'1') end,
+					setFunc = function(value) SetSetting('stackContainer'..BAG_GUILDBANK..'1', value) end,
+				},
+				{
+					type = 'checkbox',
+					name = L'guildbank'..' 2',
+					getFunc = function() return GetSetting('stackContainer'..BAG_GUILDBANK..'2') end,
+					setFunc = function(value) SetSetting('stackContainer'..BAG_GUILDBANK..'2', value) end,
+				},
+				{
+					type = 'checkbox',
+					name = L'guildbank'..' 3',
+					getFunc = function() return GetSetting('stackContainer'..BAG_GUILDBANK..'3') end,
+					setFunc = function(value) SetSetting('stackContainer'..BAG_GUILDBANK..'3', value) end,
+				},
+				{
+					type = 'checkbox',
+					name = L'guildbank'..' 4',
+					getFunc = function() return GetSetting('stackContainer'..BAG_GUILDBANK..'4') end,
+					setFunc = function(value) SetSetting('stackContainer'..BAG_GUILDBANK..'4', value) end,
+				},
+				{
+					type = 'checkbox',
+					name = L'guildbank'..' 5',
+					getFunc = function() return GetSetting('stackContainer'..BAG_GUILDBANK..'5') end,
+					setFunc = function(value) SetSetting('stackContainer'..BAG_GUILDBANK..'5', value) end,
+				},
+			},
+		},
+	}
+
+	local LAM = LibStub('LibAddonMenu-2.0')
+	LAM:RegisterAddonPanel(addonName, panelData)
+	LAM:RegisterOptionControls(addonName, optionsTable)
 end
 
 addon.slashCommandHelp = (addon.slashCommandHelp or '')
@@ -203,12 +302,14 @@ function addon.CreateSlashCommands()
 
 		if ZO_InventorySlot_GetType(object) == SLOT_TYPE_ITEM then
 			local bag, slot = ZO_Inventory_GetBagAndIndex(object)
-			itemLink = GetItemLink(bag, slot)
-
-			if Stacked.IsItemIgnored(itemLink) then
-				AddMenuItem(L'unignore item', MarkItemAsUnignored)
-			else
-				AddMenuItem(L'ignore item', MarkItemAsIgnored)
+			local _, maxStack = GetSlotStackSize(bag, slot)
+			if maxStack > 1 then
+				itemLink = GetItemLink(bag, slot)
+				if Stacked.IsItemIgnored(itemLink) then
+					AddMenuItem(L'unignore item', MarkItemAsUnignored)
+				else
+					AddMenuItem(L'ignore item', MarkItemAsIgnored)
+				end
 			end
 		end
 		if ZO_Menu_GetNumMenuItems() > 0 then ShowMenu(nil, 1) end
