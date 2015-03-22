@@ -55,8 +55,7 @@ end
 
 local positions = {}
 function addon.StackContainer(bag, itemKey, silent, excludeSlots)
-	local _, numSlots = GetBagInfo(bag)
-	for slot = 0, numSlots do
+	for slot = 0, GetBagSize(bag) do
 		local itemLink = GetItemLink(bag, slot, LINK_STYLE_DEFAULT)
 		local itemID, key
 		if itemLink then
